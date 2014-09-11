@@ -8159,20 +8159,41 @@ button.close {
   }
 }
 
-/* line 54, ../sass/screen.scss */
+/* line 53, ../sass/screen.scss */
+.player-list-container li {
+  line-height: 24px;
+  padding-top: 5px;
+  font-size: 16px;
+}
+
+/* line 59, ../sass/screen.scss */
 .table-striped > tbody > tr.game-attending-row td {
   background: #CEF3CE;
+  vertical-align: middle;
 }
-/* line 58, ../sass/screen.scss */
+/* line 64, ../sass/screen.scss */
 .table-striped > tbody > tr.game-attending-row td .btn-success {
   border: 1px solid #000;
 }
 
-/* line 63, ../sass/screen.scss */
+/* line 69, ../sass/screen.scss */
 .table-striped > tbody > tr.game-not-attending-row td {
   background: #FDCFCF;
 }
-/* line 66, ../sass/screen.scss */
+/* line 72, ../sass/screen.scss */
 .table-striped > tbody > tr.game-not-attending-row td .btn-danger {
   border: 1px solid #000;
+}
+
+/* line 79, ../sass/screen.scss */
+.table > thead > tr > th, .table > thead > tr > td,
+.table > tbody > tr > th, .table > tbody > tr > td,
+.table > tfoot > tr > th, .table > tfoot > tr > td {
+  vertical-align: middle;
+}
+
+/* line 84, ../sass/screen.scss */
+.td-actions,
+.td-center {
+  text-align: center;
 }

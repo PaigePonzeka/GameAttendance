@@ -1,30 +1,54 @@
 <html>
 	<head>
-		<title>Will You Attend?</title>
+		<title>Game Attendance</title>
 		<link href="./stylesheets/screen.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
 		<div class="container">
-			<h1></h1>
-			<div class="panel panel-default js-player-list-wrapper">
-			  <div class="panel-heading">Select a Player</div>
-			  <div class="panel-body js-player-list-container">
-			    <div class="spinner">
-					  <div class="double-bounce1"></div>
-					  <div class="double-bounce2"></div>
-					</div>
-			  </div>
-			</div>
+
+			<div class="index-container js-index-container">
+				<div class="panel panel-default js-player-list-wrapper">
+				  <div class="panel-heading">Select a Player</div>
+				  <div class="panel-body js-player-list-container player-list-container">
+				    <div class="spinner">
+						  <div class="double-bounce1"></div>
+						  <div class="double-bounce2"></div>
+						</div>
+				  </div>
+				</div>
+				<div class="panel panel-default js-player-list-wrapper">
+				  <div class="panel-heading">Select a Game</div>
+				  <div class="panel-body js-game-list-container player-list-container">
+				    <div class="spinner">
+						  <div class="double-bounce1"></div>
+						  <div class="double-bounce2"></div>
+						</div>
+				  </div>
+				</div>
+			</div> <!-- / Index-container -->
 			<div class="js-player-info-container" style="display: none;">
 				<a href="#" class="js-back-to-playerlist"> << Back</a>
 				<h2 class="js-player-name"></h2>
-				<div class="js-game-list-container">
+				<div class="js-player-game-list-container">
 					<div class="spinner">
 					  <div class="double-bounce1"></div>
 					  <div class="double-bounce2"></div>
 					</div>
 				</div>
 			</div>
+		</div>
+		<div class="js-game-info-container" style="display: none;">
+			<a href="#" class="js-back-to-playerlist"> << Back</a>
+				<div class="panel panel-default">
+					<div class="panel-heading js-game-name"></div>
+					  <div class="panel-body js-player-list-container">
+					    <div class="spinner">
+							  <div class="double-bounce1"></div>
+							  <div class="double-bounce2"></div>
+							</div>
+					  </div>
+					</div>
+				</div>
 		</div>
 		<script id="game-template" type="text/x-handlebars-template">
   		<table class="table table-striped table-bordered">
@@ -33,7 +57,11 @@
   					<th>Date</th>
   					<th>Field</th>
   					<th>Opponent</th>
-  					<th>Attending?</th>
+  					{{#if isMainScreen}}
+  						<th></th>
+  					{{else}}
+  						<th>Attending?</th>
+  					{{/if}}
   				</tr>
   			</thead>
   			{{#each allGames}}
@@ -47,9 +75,50 @@
 	  				<td>
 	  					{{opponent}}
 	  				</td>
+	  				<td class="td-actions">
+	  					{{#if ../isMainScreen}}
+  							<a href="#" class="btn btn-primary js-show-game-btn" data-game-id={{id}}>View</a>
+  						{{else}}
+  							<button class="btn btn-success js-player-yes-btn" data-game-id={{id}}>Yes</button>
+	  						<button class="btn btn-danger js-player-no-btn" data-game-id={{id}}>No</button>
+  						{{/if}}
+	  				</td>
+	  			</tr>
+  			{{/each}}
+  		</table>
+	</script>
+	<script id="player-template" type="text/x-handlebars-template">
+  		<table class="table table-striped table-bordered">
+  			<thead>
+  				<tr>
+  					<th>First Name</th>
+  					<th>Last Name</th>
+  					<th class="td-center">#</th>
+  					{{#if isMainScreen}}
+  						<th></th>
+  					{{else}}
+  						<th class="td-center">Attending?</th>
+  					{{/if}}
+  				</tr>
+  			</thead>
+  			{{#each allPlayers}}
+	  			<tr class="js-game-player-row {{setAttendingClass isAttending}}">
 	  				<td>
-	  					<button class="btn btn-success js-player-yes-btn" data-game-id={{id}}>Yes</button>
-	  					<button class="btn btn-danger js-player-no-btn" data-game-id={{id}}>No</button>
+	  					{{firstName}}
+	  				</td>
+	  				<td>
+	  					{{lastName}}
+	  				</td>
+	  				<td class="td-center">
+	  					{{number}}
+	  				</td>
+	  				<td class="td-actions">
+	  					{{#if ../isMainScreen}}
+	  						<a href="#" class="btn btn-primary js-update-player-btn" data-player-id={{id}}>Update</a>
+  						{{else}}
+  							<button class="btn btn-success js-player-yes-btn" data-player-id={{id}}>Yes</button>
+	  						<button class="btn btn-danger js-player-no-btn" data-player-id={{id}}>No</button>
+  						{{/if}}
 	  				</td>
 	  			</tr>
   			{{/each}}
