@@ -75,11 +75,11 @@
 			self.attendanceButtonAction(playerId, gameId, $this);
 		});
 
-		$('.js-player-list-container').on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
+		$('.js-game-info-container').on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
 			var $this = $(this),
 					playerId = $this.data('player-id'),
-					gameId	= $this.closest('.js-game-name').data('game-id');
-				
+					gameId	= $('.js-game-info-container').find('.js-game-name').attr('data-game-id');
+					
 					self.attendanceButtonAction(playerId, gameId, $this);
 		});
 
@@ -104,7 +104,18 @@
 			}
 
 			this.savePlayerGame(playerId, gameId, isAttending, setRowClass(isAttending));
-		};
+			var $parent = $button.closest('.js-player-list-container');
+			this.getAndSetTotalPlayerCount($parent);
+	};
+
+	/**
+	 * Set the Total Player count
+	 */
+	GameAttendance.prototype.getAndSetTotalPlayerCount = function($parent){
+		var count = $parent.find('.js-game-player-row.game-attending-row').length;
+		$('.js-player-count').html(count);
+	};
+
 	/**
 	 * -------- Update Views -------
 	 */
@@ -116,8 +127,9 @@
 		this.containers.index.hide();
 		var currentGame = this.local.allGames[currentGameId];
 		this.containers.gameInfo.find('.js-game-name')
-				.html(this.formatDate(currentGame.dateTime) + ' on ' + currentGame.field + ' vs ' + currentGame.opponent)
-				.data('game-id', currentGameId);
+				.attr('data-game-id', currentGameId)
+				.html(this.formatDate(currentGame.dateTime) + ' on ' + currentGame.field + ' vs ' + currentGame.opponent);
+	
 
 		this.loadPlayerGames(null, currentGameId);
 	};	
@@ -129,8 +141,6 @@
 	GameAttendance.prototype.showPlayerView = function(playerId){
 		this.containers.index.hide();
 		this.containers.playerInfo.show();
-		console.log(this.currentPlayer);
-		console.log(this.local.allPlayers);
 		var playerName = this.local.allPlayers[playerId].firstName + ' ' + this.local.allPlayers[playerId].lastName;
 		this.containers.playerInfo.find('.js-player-name').html(playerName);
 		this.loadPlayerGames(this.currentPlayer.Id);
@@ -175,6 +185,7 @@
 		});
 		var playerList = this.templates.playerList(this.local);
 		$('.js-game-info-container .js-player-list-container').html(playerList).show();
+		this.getAndSetTotalPlayerCount($('.js-game-info-container .js-player-list-container'));
 	};
 
 	/**
@@ -193,7 +204,6 @@
 	 * Show list of players on the view
 	 */
 	GameAttendance.prototype.showPlayerList = function(onMainScreen, $parent){
-		console.log("OnMainScreen", onMainScreen);
 		var data = {
 			allPlayers : this.local.allPlayers,
 			isMainScreen: onMainScreen
@@ -217,6 +227,7 @@
 	 */
 	GameAttendance.prototype.savePlayerGame = function(playerId, gameId, isAttending, callback) {
 		var gamePlayer = {};
+		
 		if (this.local.attendanceByGame[gameId]) {
 			gamePlayer = this.local.attendanceByGame[gameId];
 		} else {
@@ -394,7 +405,6 @@
 	 */
 	GameAttendance.prototype.setPlayerData = function(){
 		var self = this;
-		console.log(this.local);
 		if (this.local.players) {
 			$.each(this.local.players, function() {
 				var playerData= {
