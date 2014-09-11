@@ -4,3 +4,21 @@
  * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
 
 @import "compass/reset";
+@import "bootstrap";
+
+.table-striped > tbody > tr.game-attending-row td {
+	background: #CEF3CE;
+	//border-color: #666;
+
+	.btn-success {
+		border: 1px solid #000;
+	}
+}
+
+.table-striped > tbody > tr.game-not-attending-row td {
+	background: #FDCFCF;
+
+	.btn-danger {
+		border: 1px solid #000;
+	}
+}

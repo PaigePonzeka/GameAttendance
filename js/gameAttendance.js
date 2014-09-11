@@ -17,6 +17,8 @@
 		this.containers.playerList = $('.js-player-list-container');
 		this.containers.playerInfo = $('.js-player-info-container');
 		this.containers.gameList = $('.js-game-list-container');
+		this.templates = {};
+		this.templates.gamesList = Handlebars.compile($("#game-template").html());
 		this.players = null;
 		this.currentPlayer = {};
 		this.loadGames();
@@ -100,58 +102,78 @@
 			self.currentPlayer.Id = $(this).data('player-id');
 			self.currentPlayer.info = $(this).html();
 			// show the current Player info
-			console.log(self.currentPlayer);
 			self.showPlayerInfo();
 		});
 
 		$('.js-back-to-playerlist').on('click', function(){
-			self.containers.playerList.show();
+			$('.js-player-list-wrapper').show();
 			self.containers.playerInfo.hide();
 			self.currentPlayer = {};
 		});
+
+		$('.js-game-list-container').on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
+			// update the playerGame relationship
+			var playerId = self.currentPlayer.Id,
+					$this = $(this),
+					gameId	= $this.data('game-id'),
+					isAttending = false;
+
+			if ($this.hasClass('js-player-yes-btn')) {
+				isAttending = true;
+			}
+			// change the view to show that data is loading
+			var setRowClass = function(isAttending){
+				$this.closest('.js-game-player-row').toggleClass('game-attending-row', isAttending);
+				$this.closest('.js-game-player-row').toggleClass('game-not-attending-row', !isAttending);
+			};
+			self.savePlayerGame(playerId, gameId, isAttending, setRowClass(isAttending));
+			// change the row class, remove the loading animation
+		});
 	};
 
+	GameAttendance.prototype.savePlayerGame = function(playerId, gameId, isAttending, callback) {
+		var gamePlayer = {};
+		if (this.local.gamePlayersAttendance[gameId]) {
+			gamePlayer = this.local.gamePlayersAttendance[gameId];
+		} else {
+			gamePlayer = new this.GamePlayer();
+			gamePlayer.set('playerId', playerId);
+			gamePlayer.set('gameId', gameId);
+		}
+		gamePlayer.set('isAttending', isAttending);
+
+		gamePlayer.save(null, {
+		  success: function(gamePlayer) {
+		    console.log("Status Updated!");
+		    if (typeof callback === 'function') {
+		    	callback();
+		    }
+		  }
+		});
+	};
 	/**
 	 * Iterate through EVERY game, if it exists in the PlayerGame 
 	 * table then there's a response, show that, otherwise show and empty game
 	 */
 	GameAttendance.prototype.showPlayerGameData = function(){
-		console.log("Showing Player Data");
-		var gamesList = $('<ul/>'),
-				self = this;
-		console.log("Here");
-		console.log(this.local);
+		var self = this;
+		
 		$.each(this.local.allGames, function(key, value){
-			console.log("games");
-			var gameListItem = $('<li />', {
-				text: this.get('dateTime') + ' ' + this.get('field') + ' vs ' + this.get('opponent')
-			});
-			// create game info
-			if (self.local.gamePlayersAttendance[key]) {
-				//game.playerAttending = 
-				console.log("Player Data exists");
-				gameListItem.addClass('playerAttendingGame');
-			} else {
-				// add buttons
-			}
-			console.log('game list item', gameListItem);
-			gamesList.append(gameListItem);
-		});	
-		console.log(gamesList);
+			var game = this;
+			if(self.local.gamePlayersAttendance[key]) {
+				game.isAttending = self.local.gamePlayersAttendance[key].get('isAttending');
+			} 
+		});
+		var gamesList = this.templates.gamesList(this.local);
 		this.containers.gameList.html(gamesList).show();
 	};
 	/**
 	 *
 	 */
 	GameAttendance.prototype.showPlayerInfo = function(){
-		this.containers.playerList.hide();
+		$('.js-player-list-wrapper').hide();
 		this.containers.playerInfo.show();
 		this.containers.playerInfo.find('.js-player-name').html(this.currentPlayer.info);
-		// show Game data
-		//this.showGameData();
-		// get player specific game Info
-		console.log(this.currentPlayer.Id);
-		console.log(this.local.players[this.currentPlayer.Id]);
 		this.loadPlayerGames(this.currentPlayer.Id);
 	};
 
@@ -183,16 +205,14 @@
 	 */
 	GameAttendance.prototype.loadPlayerGames = function(playerId) {
 		// query for all playerGames where playerId = playerId
-		console.log("load player games");
 		var self = this;
 		var query = new Parse.Query(this.GamePlayer);
 		query.equalTo('playerId', playerId);
 		query.find({
 		  success: function(results) {
-		  	console.log("Loading Games", results);
 		  	//self.games = results;
 		  	$.each(results, function(){
-		  		self.local.gamePlayersAttendance[this.get('gameId')] = this.get('isAttending'); 
+		  		self.local.gamePlayersAttendance[this.get('gameId')] = this; 
 		  	});
 		  	self.showPlayerGameData();
 		  },
@@ -226,16 +246,16 @@
 		var self = this;
 		if (this.games) {
 			$.each(this.games, function() {
-				/*var gameListItem = $("<li />", {
-					text: this.get('dateTime') + ' ' + this.get('field')
-				});
-				gameList.append(gameListItem);*/
-				self.local.allGames[this.id] = this; 
+
+				var gameData = {
+					id : this.id,
+					field: this.get('field'),
+					dateTime: this.get('dateTime'),
+					opponent: this.get('opponent')
+				};
+
+				self.local.allGames[this.id] = gameData; 
 			});	
-
-			// store local game data 
-
-			//this.containers.gameList.html(gameList);
 		}
 	};
 
@@ -250,7 +270,6 @@
 		query.ascending("dateTime");
 		query.find({
 		  success: function(results) {
-		  	console.log("Loading Games", results);
 		  	self.games = results;
 		    self.setGameData();
 		  },
@@ -269,6 +288,7 @@
 		// gets all the stored players
 		var self = this;
 		var query = new Parse.Query(this.Player);
+		query.ascending('lastName');
 		query.find({
 		  success: function(results) {
 		  	self.players = results;
@@ -297,7 +317,6 @@
 
 		player.save(playerData, {
 			success: function(player) {
-				console.log(player);
 				console.log("Player saved!");
 			},
 			error: function(player, error) {
@@ -305,6 +324,20 @@
 			}
 		});
 	};
+	
+	// format date 
+	Handlebars.registerHelper("formatDate", function(date) {
+		return moment(date).format('ddd, MMM D YYYY, h:mm A');
+	});
 
-	var gameAttenaces = new GameAttendance();
+	Handlebars.registerHelper("setAttendingClass", function(isAttending) {
+		if (isAttending === undefined) {
+			return "";
+		} else if (isAttending == true) {
+			return "game-attending-row";
+		} else {
+			return "game-not-attending-row ";
+		}
+	});
+	var gameAttendances = new GameAttendance();
 }());
