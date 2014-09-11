@@ -108,7 +108,7 @@
 		$('.js-back-to-playerlist').on('click', function(){
 			$('.js-player-list-wrapper').show();
 			self.containers.playerInfo.hide();
-			self.currentPlayer = {};
+			self.resetPlayerValues();
 		});
 
 		$('.js-game-list-container').on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
@@ -157,12 +157,15 @@
 	 */
 	GameAttendance.prototype.showPlayerGameData = function(){
 		var self = this;
+		var localGames = this.local.allGames;
 		
 		$.each(this.local.allGames, function(key, value){
 			var game = this;
-			if(self.local.gamePlayersAttendance[key]) {
+			if(self.local.gamePlayersAttendance[key] != undefined) {
 				game.isAttending = self.local.gamePlayersAttendance[key].get('isAttending');
-			} 
+			} else {
+				game.isAttending = undefined;
+			}
 		});
 		var gamesList = this.templates.gamesList(this.local);
 		this.containers.gameList.html(gamesList).show();
@@ -302,6 +305,12 @@
 		  }});
 		return query;
 	};
+
+	GameAttendance.prototype.resetPlayerValues = function(){
+		this.local.gamePlayersAttendance = {};
+		this.local.currentPlayer = {};
+	};
+
 	/**
 	 * Saves a player information to the parse server
 	 */
