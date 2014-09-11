@@ -8197,3 +8197,14 @@ button.close {
 .td-center {
   text-align: center;
 }
+
+/* line 88, ../sass/screen.scss */
+.container {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* line 93, ../sass/screen.scss */
+.panel {
+  margin-top: 10px;
+}

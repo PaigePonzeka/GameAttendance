@@ -227,7 +227,7 @@
 	 */
 	GameAttendance.prototype.savePlayerGame = function(playerId, gameId, isAttending, callback) {
 		var gamePlayer = {};
-		
+
 		if (this.local.attendanceByGame[gameId]) {
 			gamePlayer = this.local.attendanceByGame[gameId];
 		} else {
@@ -239,7 +239,6 @@
 
 		gamePlayer.save(null, {
 		  success: function(gamePlayer) {
-		    console.log("Status Updated!");
 		    if (typeof callback === 'function') {
 		    	callback();
 		    }
