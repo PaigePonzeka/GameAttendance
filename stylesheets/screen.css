@@ -8208,3 +8208,9 @@ button.close {
 .panel {
   margin-top: 10px;
 }
+
+/* line 97, ../sass/screen.scss */
+footer {
+  padding: 10px 0;
+  text-align: center;
+}
