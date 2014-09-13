@@ -29,6 +29,7 @@
 		this.loadGames();
 		this.loadPlayers();
 		this.bindActions();
+		this.urlParams = this.parseUrl();
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createPlayerGameRelation('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
@@ -42,7 +43,39 @@
 		//this.createPlayer("Test", "Player", 33);
 	};
 
+	/**
+	 * parses the data from the url (if there is any) and shows the appropiate screen
+	 */
+	GameAttendance.prototype.parseUrl = function() {
+		var params = window.location.search.replace('?', '');
+		var splitParams = params.split('=');
+		var urlValues = {};
+		if (splitParams.length > 1) {
+			var urlValues = {};
+			urlValues[splitParams[0]] = splitParams[1];
+		}
+		return urlValues;
+	};
 
+	/**
+	 * Updates the url with the parameters given in an object
+	 */
+	GameAttendance.prototype.updateUrl = function(updateValues) {
+		var paramBase = '',
+				index = 0,
+				url = window.location.href;
+		if(updateValues) {
+			paramBase = '?';
+			$.each(updateValues, function(key, value) {
+				index++;
+				paramBase += key + '=' + value;
+				if (index == updateValues.length - 1 ) {
+					paramBase += '&';
+				}
+			});
+		} 
+		 history.pushState({}, "", window.location.pathname + paramBase);
+	};
 	/**
 	 * bind event listeners 
 	 */
@@ -51,19 +84,18 @@
 		// when a user clicks a player name
 		$('.js-player-list-container').on('click', '.js-update-player-btn', function(e){
 			e.preventDefault();
-			self.local.gamePlayers = {};
-			// set the currentPlayer 
-			self.currentPlayer.Id = $(this).data('player-id');
-			// show the current Player info
-			//self.showPlayerList(false, self.containers.playerInfo)
-			self.showPlayerView($(this).data('player-id'));
+			var playerId = $(this).data('player-id');
+			self.updateUrl({"playerid" : playerId});
+			self.showPlayerView(playerId);
 		});
 
-		$('.js-back-to-playerlist').on('click', function(){
+		$('.js-back-to-playerlist').on('click', function(e){
+			e.preventDefault();
 			self.containers.index.show();
 			self.containers.playerInfo.hide();
 			self.containers.gameInfo.hide();
 			self.resetPlayerValues();
+			self.updateUrl();
 		});
 
 		$('.js-player-game-list-container').on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
@@ -85,9 +117,12 @@
 
 		$('.js-game-list-container').on('click', '.js-show-game-btn', function(e){
 			e.preventDefault();
+			var currentGameId = $(this).data('game-id');
 			// get the gameId and show the current game view
-			self.currentGame = $(this).data('game-id');
-			self.showGameView($(this).data('game-id'));
+			self.currentGame = currentGameId;
+			self.showGameView(currentGameId);
+
+			self.updateUrl({"gameid" : currentGameId});
 		});
 	};
 
@@ -139,8 +174,12 @@
 	 * Show Player Info
 	 */
 	GameAttendance.prototype.showPlayerView = function(playerId){
+		this.local.gamePlayers = {};
+		this.currentPlayer.Id = playerId;
 		this.containers.index.hide();
 		this.containers.playerInfo.show();
+		console.log(this.local.allPlayers[playerId]);
+		console.log(this.local);
 		var playerName = this.local.allPlayers[playerId].firstName + ' ' + this.local.allPlayers[playerId].lastName;
 		this.containers.playerInfo.find('.js-player-name').html(playerName);
 		this.loadPlayerGames(this.currentPlayer.Id);
@@ -395,6 +434,11 @@
 
 				self.local.allGames[this.id] = gameData; 
 			});	
+
+			if(self.urlParams.gameid) {
+				// show the game view
+				this.showGameView(self.urlParams.gameid);
+			}
 		}
 		self.showGameData();
 	};
@@ -415,6 +459,11 @@
 
 				self.local.allPlayers[this.id] = playerData; 
 			});	
+			self.parseUrl();
+			if (self.urlParams.playerid) {
+				// show the player view
+				this.showPlayerView(self.urlParams.playerid);
+			}
 		}
 		self.showPlayerList(true, this.containers.index);
 	};
