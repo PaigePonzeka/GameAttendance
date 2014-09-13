@@ -178,8 +178,8 @@
 		this.currentPlayer.Id = playerId;
 		this.containers.index.hide();
 		this.containers.playerInfo.show();
-		console.log(this.local.allPlayers[playerId]);
-		console.log(this.local);
+		this.local.attendanceByPlayer = {};
+		this.local.attendanceByGame = {};
 		var playerName = this.local.allPlayers[playerId].firstName + ' ' + this.local.allPlayers[playerId].lastName;
 		this.containers.playerInfo.find('.js-player-name').html(playerName);
 		this.loadPlayerGames(this.currentPlayer.Id);
@@ -192,14 +192,16 @@
 	GameAttendance.prototype.showPlayerGameData = function(){
 		var self = this;
 		var localGames = this.local.allGames;
-		
+		this.containers.gameList.html(gamesList).hide();
 		$.each(this.local.allGames, function(key, value){
 			var game = this;
+
 			if(self.local.attendanceByGame[key] != undefined) {
 				game.isAttending = self.local.attendanceByGame[key].get('isAttending');
 			} else {
 				game.isAttending = undefined;
 			}
+			console.log(game);
 		});
 		var gamesList = this.templates.gamesList(this.local);
 		this.containers.gameList.html(gamesList).show();
@@ -212,7 +214,7 @@
 	GameAttendance.prototype.showGamePlayerData = function(){
 		var self = this;
 		var localPlayers = this.local.allPlayers;
-		
+		$('.js-game-info-container .js-player-list-container').hide();
 		$.each(this.local.allPlayers, function(key, value){
 			var player = this;
 			var currentAttendance = self.local.attendanceByPlayer[key];
