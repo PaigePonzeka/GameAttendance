@@ -1,3 +1,10 @@
+/*
+ * TODO
+ * MOBILE Friendly?
+ * Clear out current games
+ * Send to Team
+ */
+
 (function(){
 	var GameAttendance = function(){
 		this.options = {};
@@ -30,17 +37,75 @@
 		this.loadPlayers();
 		this.bindActions();
 		this.urlParams = this.parseUrl();
+		//this.initGames();
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createPlayerGameRelation('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
-		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', false);
-		//this.createGame(new Date("September 20, 2014 12:00:00 EST"), "Randall's Island Field #13", "Beavers");
-		//this.createGame(new Date("September 27, 2014 1:30:00 EST"), "Randall's Island Field #19 ", "B-Bombers");
-		//this.createGame(datetime, "Randall's Island Field #33", "Majestic Thunder");
-		//this.createGame(datetime, "Randall's Island Field #18", "Hell Cats");
-		//this.createGame(datetime, "Randall's Island Field #34", "Venom");
-		//this.createPlayer("Katy", "Mess", 17);
-		//this.createPlayer("Test", "Player", 33);
+	};
+
+	/*
+	 * Intializes the scheduled games (Database function)
+	 */
+	GameAttendance.prototype.initGames = function(){
+		//week 1
+		this.createGame(new Date("September 20, 2014 12:00:00 PM EST"), 
+			"Randall's Island Field #25", 
+			"vs VenomCats", 1);
+		this.createGame(new Date("September 20, 2014 1:30:00 PM EST"), 
+			"Randall's Island Field #25", 
+			"@ VenomCats", 1);
+
+		// week 2
+		this.createGame(new Date("September 27, 2014 3:00:00 PM EST"), 
+			"Randall's Island Field #25", 
+			"@ Majestic Thunder", 2);
+		this.createGame(new Date("September 27, 2014 4:30:00 PM EST"), 
+			"Randall's Island Field #25", 
+			"vs Majestic Thunder", 2);
+		
+		// Week 3
+		this.createGame(new Date("October 4, 2014 1:00:00 PM EST"), 
+			"Randall's Island Field #22", 
+			"@ B-Bombers", 3);
+		this.createGame(new Date("October 4, 2014 2:30:00 PM EST"), 
+			"Randall's Island Field #22", 
+			"vs B-Bombers", 3);
+
+		// Week 4
+		this.createGame(new Date("October 18, 2014 2:30:00 PM EST"), 
+			"Randall's Island Field #24", 
+			"@ VenomCats", 4);
+		this.createGame(new Date("October 18, 2014 4:00:00 PM EST"), 
+			"Randall's Island Field #24", 
+			"vs VenomCats", 4);
+
+		// week 5
+		this.createGame(new Date("October 25, 2014 2:30:00 PM EST"), 
+			"Randall's Island Field #24", 
+			"vs Majestic Thunder", 5);
+		this.createGame(new Date("October 25, 2014 4:00:00 PM EST"), 
+			"Randall's Island Field #24", 
+			"@ Majestic Thunder", 5);
+
+		// week 6
+		this.createGame(new Date("November 1, 2014 1:00:00 PM EST"), 
+			"Randall's Island Field #22", 
+			"vs B-Bombers", 6);
+		this.createGame(new Date("November 1, 2014 2:30:00 PM EST"), 
+			"Randall's Island Field #22", 
+			"@ B-Bombers", 6);
+
+		// PlayOffs etc
+		this.createGame(new Date("November 8, 2014 10:00:00 AM EST"), 
+			"N/A", 
+			"MAKEUPS/PLAYOFFS", 7);
+		this.createGame(new Date("November 15, 2014 10:00:00 AM EST"), 
+			"N/A", 
+			"PLAYOFFS", 8);
+		this.createGame(new Date("November 22, 2014 10:00:00 AM EST"), 
+			"N/A", 
+			"PLAYOFFS", 9);
+
 	};
 
 	/**
@@ -291,13 +356,14 @@
 	/**
 	 * Creates Games and saves them to the database
 	 */
-	GameAttendance.prototype.createGame = function(dateTime, field, opponent) {
+	GameAttendance.prototype.createGame = function(dateTime, field, opponent, week) {
 				// Create a new instance of that class.
 		var game = new this.Game();
 		var gameData = {
 			'dateTime' : dateTime, 
 			'field' : field,
-			'opponent' : opponent
+			'opponent' : opponent,
+			'week': week
 		};
 		// TODO(Paige) set player position?
 
@@ -480,7 +546,8 @@
 	GameAttendance.prototype.formatDate = function(date) {
 		return moment(date).format('ddd, MMM D YYYY, h:mm A');
 	};
-	
+
+
 	// format date 
 	Handlebars.registerHelper("formatDate", function(date) {
 		return moment(date).format('ddd, MMM D YYYY, h:mm A');
