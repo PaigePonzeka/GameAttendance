@@ -266,7 +266,6 @@
 			} else {
 				game.isAttending = undefined;
 			}
-			console.log(game);
 		});
 		var gamesList = this.templates.gamesList(this.local);
 		this.containers.gameList.html(gamesList).show();
@@ -497,7 +496,8 @@
 					id : this.id,
 					field: this.get('field'),
 					dateTime: this.get('dateTime'),
-					opponent: this.get('opponent')
+					opponent: this.get('opponent'),
+					week: this.get('week')
 				};
 
 				self.local.allGames[this.id] = gameData; 

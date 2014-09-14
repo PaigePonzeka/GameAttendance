@@ -52,7 +52,7 @@
 							You have until Friday to fill out your attendance. All players without attendance set will NOT be placed in the lineup for that week's games.
 						</li>
 						<li>
-							NOTE: We have double headers EVERY week but each game is listed individual please remember to confirm for BOTH games
+							NOTE: We have double headers EVERY week but each game is listed individually please remember to confirm for BOTH games
 						</li>
 						</ol>
 					</div>
@@ -85,6 +85,7 @@
 		<table class="table table-striped table-bordered">
 			<thead>
 				<tr>
+					<th>Week</th>
 					<th>Date</th>
 					<th>Field</th>
 					<th>Opponent</th>
@@ -97,6 +98,7 @@
 			</thead>
 			{{#each allGames}}
 				<tr class="js-game-player-row {{setAttendingClass isAttending}}">
+					<td>{{week}}</td>
 					<td>
 						{{formatDate dateTime}}
 					</td>
@@ -119,7 +121,7 @@
 		</table>
 	</script>
 	<script id="player-template" type="text/x-handlebars-template">
-		<table class="table table-striped table-bordered">
+		<table class="table table-striped table-bordered player-table">
 			<thead>
 				<tr>
 					<th>Name</th>
