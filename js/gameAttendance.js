@@ -17,6 +17,7 @@
 		this.local.allPlayers = {};
 		this.local.attendanceByPlayer = [];
 		this.local.attendanceByGame = [];
+		this.local.attendanceByGameByPlayer = {};
 		this.init();
 	};
 
@@ -332,18 +333,20 @@
 	 */
 	GameAttendance.prototype.savePlayerGame = function(playerId, gameId, isAttending, callback) {
 		var gamePlayer = {};
+		if (playerId && gameId) {
+			gamePlayer = this.local.attendanceByGameByPlayer[gameId + '-' + playerId];
+		} 
 
-		if (this.local.attendanceByGame[gameId]) {
-			gamePlayer = this.local.attendanceByGame[gameId];
-		} else {
+		if(!gamePlayer) {
 			gamePlayer = new this.GamePlayer();
 			gamePlayer.set('playerId', playerId);
 			gamePlayer.set('gameId', gameId);
 		}
 		gamePlayer.set('isAttending', isAttending);
-
+		console.log(gamePlayer);
 		gamePlayer.save(null, {
 		  success: function(gamePlayer) {
+		  	console.log("game Status saved!", gamePlayer);
 		    if (typeof callback === 'function') {
 		    	callback();
 		    }
@@ -427,11 +430,15 @@
 		} else if(gameId) {
 			query.equalTo('gameId', gameId);
 		}
+		self.local.attendanceByPlayer = {}; 
+		self.local.attendanceByGame = {}; 
+		self.local.attendanceByGameByPlayer = {};
 		query.find({
 		  success: function(results) {
 		  	$.each(results, function(){
 		  			self.local.attendanceByPlayer[this.get('playerId')] = this; 
 		  			self.local.attendanceByGame[this.get('gameId')] = this; 
+		  			self.local.attendanceByGameByPlayer[this.get('gameId') + '-' + this.get('playerId')] = this;
 		  		});
 		  	if (playerId) {
 		  		self.showPlayerGameData();
