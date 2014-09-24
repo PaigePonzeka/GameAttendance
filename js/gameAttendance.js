@@ -6,8 +6,8 @@
  */
 
 (function(){
-	var GameAttendance = function(){
-		this.options = {};
+	var GameAttendance = function(options){
+		this.options = $.extend(true, {}, this.defaults, options);
 		this.Player = Parse.Object.extend("Player");
 		this.Game = Parse.Object.extend("Game");
 		this.GamePlayer = Parse.Object.extend('GamePlayer');
@@ -230,8 +230,10 @@
 		this.containers.gameInfo.find('.js-game-name')
 				.attr('data-game-id', currentGameId)
 				.html(this.formatDate(currentGame.dateTime) + ' on ' + currentGame.field + ' vs ' + currentGame.opponent);
-	
+		var link = this.containers.gameInfo.find('.js-attendance-list-btn').data('link-prepend');
+		link += currentGameId;
 
+		this.containers.gameInfo.find('.js-attendance-list-btn').attr('href', link);
 		this.loadPlayerGames(null, currentGameId);
 	};	
 
@@ -312,8 +314,10 @@
 	GameAttendance.prototype.showPlayerList = function(onMainScreen, $parent){
 		var data = {
 			allPlayers : this.local.allPlayers,
-			isMainScreen: onMainScreen
+			isMainScreen: onMainScreen,
+			mode: this.options.mode
 		};
+
 		var playerList = this.templates.playerList(data);
 		if ($parent) {
 			$parent.find('.js-player-list-container').html(playerList);
@@ -365,7 +369,7 @@
 			'dateTime' : dateTime, 
 			'field' : field,
 			'opponent' : opponent,
-			'week': week
+			'week': week,
 		};
 		// TODO(Paige) set player position?
 
@@ -504,7 +508,8 @@
 					field: this.get('field'),
 					dateTime: this.get('dateTime'),
 					opponent: this.get('opponent'),
-					week: this.get('week')
+					week: this.get('week'),
+					result: this.get('Result')
 				};
 
 				self.local.allGames[this.id] = gameData; 
@@ -529,9 +534,9 @@
 					id: this.id,
 					firstName: this.get('firstName'),
 					lastName: this.get('lastName'),
-					number: this.get('number')
+					number: this.get('number'),
+					positions: this.get('positions')
 				};
-
 				self.local.allPlayers[this.id] = playerData; 
 			});	
 			self.parseUrl();
@@ -569,5 +574,5 @@
 			return "game-not-attending-row ";
 		}
 	});
-	var gameAttendances = new GameAttendance();
+	window.GameAttendance = GameAttendance;
 }());

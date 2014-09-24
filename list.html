@@ -1,0 +1,145 @@
+<html>
+  <head>
+    <title>Attendance Tracker</title>
+    <link href="./stylesheets/screen.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div class="container">
+      <div class="index-container js-index-container">
+        <h1>Attendance Tracker <span class="beta">Beta</span></h1>
+        <div class="panel panel-primary">
+          <div class="panel-body"
+            <ol>
+            <li>
+              Find your name in the list and click the "Update" Button to set your game attendance
+            </li>
+            </ol>
+          </div>
+        </div>
+        <div class="panel panel-default js-player-list-wrapper">
+          <div class="panel-heading">Select a Player</div>
+          <div class="panel-body js-player-list-container player-list-container">
+          <div class="spinner">
+              <div class="double-bounce1"></div>
+              <div class="double-bounce2"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default js-player-list-wrapper">
+          <div class="panel-heading">Select a Game</div>
+          <div class="panel-body js-game-list-container player-list-container">
+          <div class="spinner">
+              <div class="double-bounce1"></div>
+              <div class="double-bounce2"></div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- / Index-container -->
+      <div class="js-player-info-container" style="display: none;">
+        <h2 class="js-player-name"></h2>
+        <div class="panel panel-primary">
+          <div class="panel-body">
+          </div>
+        </div>
+        <div class="js-player-game-list-container">
+          <div class="spinner">
+            <div class="double-bounce1"></div>
+            <div class="double-bounce2"></div>
+          </div>
+        </div>
+    </div>
+    <div class="js-game-info-container" style="display: none;">
+        <div class="panel panel-default">
+          <div class="panel-heading js-game-name"></div>
+            <div class="panel-body js-player-list-container">
+            <div class="spinner">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      &copy; 2014 <a target="_blank" href="http://ponzeka.com">Paige Ponzeka</a>
+    </footer>
+    <script id="game-template" type="text/x-handlebars-template">
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Week</th>
+          <th>Date</th>
+          <th>Field</th>
+          <th>Opponent</th>
+          {{#if isMainScreen}}
+            <th></th>
+          {{else}}
+            <th>Attending?</th>
+          {{/if}}
+        </tr>
+      </thead>
+      {{#each allGames}}
+        <tr class="js-game-player-row {{setAttendingClass isAttending}}">
+          <td>{{week}}</td>
+          <td>
+            {{formatDate dateTime}}
+          </td>
+          <td>
+            {{field}}
+          </td>
+          <td>
+            {{opponent}}
+          </td>
+          <td class="td-actions">
+            {{#if ../isMainScreen}}
+              <a href="#" class="btn btn-primary js-show-game-btn" data-game-id={{id}}>View</a>
+            {{else}}
+              <button class="btn btn-success js-player-yes-btn" data-game-id={{id}}>Yes</button>
+              <button class="btn btn-danger js-player-no-btn" data-game-id={{id}}>No</button>
+            {{/if}}
+          </td>
+        </tr>
+      {{/each}}
+    </table>
+  </script>
+  <script id="player-template" type="text/x-handlebars-template">
+    <table class="table table-striped table-bordered player-table">
+      <thead>
+        <tr>
+          <th>Name {{mode}}</th>
+          <th class="td-center">#</th>
+          <th>Position</th>
+        </tr>
+      </thead>
+      {{#each allPlayers}}
+        {{#if isAttending}}
+          <tr class="js-game-player-row">
+            <td>
+              {{lastName}}, {{firstName}} 
+            </td>
+            <td class="td-center">
+              {{number}}
+            </td>
+            <td>
+              {{positions}}
+            </td>
+          </tr>
+        {{/if}}
+      {{/each}}
+    </table>
+  </script>
+  <script src="./js/jquery-1.11.1.min.js"></script>
+  <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+  <script src="./js/handlebars-v2.0.0.js"></script>
+  <script src="./js/moment.min.js"></script>
+  <script src="./js/gameAttendance.js"></script>
+  <script>
+    $(document).ready(function(){
+      var gameAttendances = new GameAttendance({
+        mode: 'list'
+      });
+    });
+  </script>
+  </body>
+</html>
