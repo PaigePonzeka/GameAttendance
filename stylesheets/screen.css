@@ -8229,3 +8229,8 @@ footer {
 .game-played {
   opacity: 0.4;
 }
+
+/* line 121, ../sass/screen.scss */
+.attendance-btn {
+  margin-left: 20px;
+}

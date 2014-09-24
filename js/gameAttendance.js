@@ -230,8 +230,10 @@
 		this.containers.gameInfo.find('.js-game-name')
 				.attr('data-game-id', currentGameId)
 				.html(this.formatDate(currentGame.dateTime) + ' on ' + currentGame.field + ' vs ' + currentGame.opponent);
-	
+		var link = this.containers.gameInfo.find('.js-attendance-list-btn').data('link-prepend');
+		link += currentGameId;
 
+		this.containers.gameInfo.find('.js-attendance-list-btn').attr('href', link);
 		this.loadPlayerGames(null, currentGameId);
 	};	
 
