@@ -109,3 +109,11 @@ footer {
   width: 400px;
   margin: 0 auto;
 }
+
+.game-played {
+  opacity: 0.4;
+
+  .btn {
+    @extend .disabled;
+  }
+}
