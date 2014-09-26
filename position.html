@@ -41,7 +41,7 @@
       <tr data-playerid="{{id}}" class="js-player-row">
         <td>{{firstName}} {{lastName}}</td>
         {{#each ../positions}}
-          <td><a class="btn btn-default js-position-toggle-btn" data-posid={{posId}}>{{abbrev}}</a>
+          <td><a class="btn btn-default js-position-toggle-btn" data-posid={{posId}} data-playerPos={{../positions}}>{{abbrev}} {{playsPosition posId [4, 5]}}</a>
         {{/each}}
       </tr>
       {{/each}}

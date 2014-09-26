@@ -541,6 +541,7 @@
 		query.ascending('PosId');
 		query.find({
 		  success: function(results) {
+		  	console.log(results);
 		  	self.setPositionData(results);
 		  },
 		  error: function(object, error) {
@@ -576,27 +577,52 @@
 	var PlayerPositions = function(options) {
 		this.options = $.extend(true, {}, this.defaults, options);
 		this.PlayerPositionObj = Parse.Object.extend("PlayerPosition");
+		this.Players = new Players();
+		this.Positions = new Positions();
 		this.local = {};
 		this.local.allPlayerPositions = {};
-		this.loadPlayerPositions();
+		this.local.playerPositionsObjs = {};
+		this.init();
+	};
+
+	PlayerPositions.prototype.init = function(){
+		/**
+		 * After Players AND Positions have loaded load player positions and set data
+		 */
+		var self = this;
+		var playersLoaded = false;
+		var positionsLoaded = false;
+		$(document).on('dataLoadedAndParsed.positions', function(data){
+			positionsLoaded = true;
+			if (playersLoaded && positionsLoaded) {
+				self.load();
+			}
+		});
+
+		$(document).on('dataLoadedAndParsed.players', function(data){
+			playersLoaded = true;
+			if (playersLoaded && positionsLoaded) {
+				self.load();
+			}
+		});
+
 	};
 
 	/**
 	 *  Load the Positions from the database
 	 * 
 	 */
-	PlayerPositions.prototype.loadPlayerPositions = function(){
+	PlayerPositions.prototype.load = function(){
 		// gets all the stored players
 		var self = this;
-		var query = new Parse.Query(this.PositionObj);
+		var query = new Parse.Query(this.PlayerPositionObj);
 		query.find({
 		  success: function(results) {
-		  	console.log(results);
-		  	//self.setPlayerPositionData(results);
+		  	self.setData(results);
 		  },
 		  error: function(object, error) {
 		    self.players = null;
-		    $.event.trigger('dataLoadFailed.Positions', [self.local]);
+		    $.event.trigger('dataLoadFailed.PlayerPositions', [self.local]);
 		  }
 		});
 		return query;
@@ -605,74 +631,97 @@
 	/**
 	 * Set the Player data to a more friendly JSON format for Handlebars
 	 */
-	PlayerPositions.prototype.setPlayerPositionData = function(data){
+	PlayerPositions.prototype.setData = function(data){
 		var self = this;
 		if (data) {
 			$.each(data, function() {
-				var positionData= {
-					id: this.id,
-					name: this.get('Name'),
-					posId: this.get('PosId'),
-					abbrev: this.get('Abbrev')
-				};
-				self.local.allPositions[this.get('PosId')] = positionData; 
+				var currentPlayerId = this.get('playerId'),
+						currentPosition = this.get('positionId');
+				// if the player already has positions set just append to the array otherwise init it and append
+				if (!self.local.allPlayerPositions[currentPlayerId]) {
+					self.local.allPlayerPositions[currentPlayerId] = [];
+				}
+				self.local.playerPositionsObjs[currentPlayerId + '-' + currentPosition] = this;
+				self.local.allPlayerPositions[currentPlayerId].push(currentPosition);
 			});
 
-
-			$.event.trigger('dataLoadedAndParsed.positions', [self.local]);
+			$.each(self.Players.local.allPlayers, function() {
+				this.positions = self.local.allPlayerPositions[this.id];
+			});
+			$.event.trigger('dataLoadedAndParsed.PlayerPositions', [self.local]);
 		}
+	};
+
+	/**
+	 * [update description]
+	 * @param  {[type]} playerId     [description]
+	 * @param  {[type]} positionId   [description]
+	 * @param  {[type]} savePosition [description]
+	 * @return {[type]}              [description]
+	 */
+	PlayerPositions.prototype.update = function(playerId, positionId, savePosition){
+		var playerPosition = this.local.playerPositionsObjs[playerId + '-' + positionId];
+		// if the playerPosition doesn't exist create a new one
+		if (!playerPosition) {
+			playerPosition = new this.PlayerPositionObj();
+		}
+
+		var data = {
+			'playerId' : playerId, 
+			'positionId' : positionId
+		};
+
+		playerPosition.save(data, {
+			success: function(data) {
+				console.log("Position Saved!");
+				$.event.trigger('saved.playerPositions', [data]);
+			},
+			error: function(player, error) {
+				console.log("Error Creating Player Position", error);
+			}
+		});
 	};
 
 
 	//player-position-template
 	var PlayerPositionsView = function(options){
 		this.options = $.extend(true, {}, this.defaults, options);
-		this.Players = new Players();
-		this.Positions = new Positions();
 		this.PlayerPositions = new PlayerPositions();
 		this.playerPositionListTemplate = Handlebars.compile($('#player-position-template').html());
 		this.init();
+		this.bindTableActions();
 	};
 
 	PlayerPositionsView.prototype.init = function(){
 		var self = this;
-		var playersLoaded = false;
-		var positionsLoaded = false;
-		$(document).on('dataLoadedAndParsed.positions', function(data){
-			positionsLoaded = true;
-			if (playersLoaded && positionsLoaded) {
-				self.showTable();
-			}
-			
+		$(document).on('dataLoadedAndParsed.PlayerPositions', function(data) {
+			self.showTable();
 		});
-		$(document).on('dataLoadedAndParsed.positions, dataLoadedAndParsed.players', function(data){
-			playersLoaded = true;
-			if (playersLoaded && positionsLoaded) {
-				self.showTable();
-			}
-		});
+
+
 	};
 
 	PlayerPositionsView.prototype.bindTableActions = function() {
+		var self = this;
 		$('.js-player-position-list-container').on('click', '.js-position-toggle-btn', function(){
-			$(this).toggleClass('btn-success');
+			$(this).toggleClass('btn-success').attr('disabled', 'disabled');
 			// get player id
 			var playerId = $(this).closest('.js-player-row').data('playerid');
 			// get pos id
 			var posId = $(this).data('posid');
-			console.log(playerId);
-			console.log(posId);
+			self.PlayerPositions.update(playerId, posId);
 		});
 	};
 
 	PlayerPositionsView.prototype.showTable = function() {
 		var data = {
-				players: this.Players.local.allPlayers,
-				positions: this.Positions.local.allPositions
+				players: this.PlayerPositions.Players.local.allPlayers,
+				positions: this.PlayerPositions.Positions.local.allPositions
 			};
+			console.log('showing table', data);
 		//console.log(data);
+		
 		$('.js-player-position-list-container').html(this.playerPositionListTemplate(data));
-		this.bindTableActions();
 	};
 
 	PlayerPositionsView.prototype.save
@@ -692,6 +741,13 @@
 		} else {
 			return "game-not-attending-row ";
 		}
+	});
+
+	Handlebars.registerHelper("playsPosition", function(positionId, playerPositions) {
+		console.log(positionId);
+		console.log(playerPositions)
+		console.log($.inArray(positionId, playerPositions) >= 0);
+		return $.inArray(positionId, playerPositions) >= 0;
 	});
 	window.GameAttendance = GameAttendance;
 }());
