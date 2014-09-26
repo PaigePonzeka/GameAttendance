@@ -127,7 +127,6 @@
 		 * Show the loaded Player Data to the screen
 		 */
 		$(document).on('dataLoadedAndParsed.players', function(e, playerData){
-			console.log("here");
 			playerData.isMainScreen = self.options.onMainScreen;
 			playerData.mode = self.options.mode;
 			$('.js-player-list-container').html(self.Players.createPlayerTable(playerData));
@@ -223,8 +222,6 @@
 	GameAttendance.prototype.showGamePlayerData = function(){
 		var self = this;
 		var localPlayers = this.Players.local.allPlayers;
-		console.log(this.Players.local);
-		console.log("showing Game Player Data");
 		$('.js-game-info-container .js-player-list-container').hide();
 		$.each(this.Players.local.allPlayers, function(key, value){
 			var player = this;
@@ -291,7 +288,6 @@
 			gamePlayer.set('gameId', gameId);
 		}
 		gamePlayer.set('isAttending', isAttending);
-		console.log(gamePlayer);
 		gamePlayer.save(null, {
 		  success: function(gamePlayer) {
 		  	console.log("game Status saved!", gamePlayer);
