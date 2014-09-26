@@ -670,7 +670,6 @@
 			'playerId' : playerId, 
 			'positionId' : positionId
 		};
-
 		playerPosition.save(data, {
 			success: function(data) {
 				console.log("Position Saved!");
@@ -680,6 +679,19 @@
 				console.log("Error Creating Player Position", error);
 			}
 		});
+	};
+
+	PlayerPositions.prototype.delete = function(playerId, positionId){
+		var playerPosition = this.local.playerPositionsObjs[playerId + '-' + positionId],
+				self = this;
+
+		if (playerPosition) {
+			playerPosition.destroy({
+				success: function(){
+					self.local.playerPositionsObjs[playerId + '-' + positionId] = null;
+				}
+			});
+		}
 	};
 
 
@@ -697,8 +709,6 @@
 		$(document).on('dataLoadedAndParsed.PlayerPositions', function(data) {
 			self.showTable();
 		});
-
-
 	};
 
 	PlayerPositionsView.prototype.bindTableActions = function() {
@@ -709,7 +719,11 @@
 			var playerId = $(this).closest('.js-player-row').data('playerid');
 			// get pos id
 			var posId = $(this).data('posid');
-			self.PlayerPositions.update(playerId, posId);
+			if ($(this).hasClass('btn-success')) {
+				self.PlayerPositions.update(playerId, posId);
+			} else {
+				self.PlayerPositions.delete(playerId, posId);
+			}
 		});
 	};
 
@@ -718,8 +732,6 @@
 				players: this.PlayerPositions.Players.local.allPlayers,
 				positions: this.PlayerPositions.Positions.local.allPositions
 			};
-			console.log('showing table', data);
-		//console.log(data);
 		
 		$('.js-player-position-list-container').html(this.playerPositionListTemplate(data));
 	};
@@ -743,11 +755,8 @@
 		}
 	});
 
-	Handlebars.registerHelper("playsPosition", function(positionId, playerPositions) {
-		console.log(positionId);
-		console.log(playerPositions)
-		console.log($.inArray(positionId, playerPositions) >= 0);
-		return $.inArray(positionId, playerPositions) >= 0;
+	Handlebars.registerHelper("playsPosition", function(player) {
+		return $.inArray(this.posId, player.positions) >= 0;
 	});
 	window.GameAttendance = GameAttendance;
 }());
