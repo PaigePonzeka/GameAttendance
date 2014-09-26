@@ -6,15 +6,14 @@
  */
 
 (function(){
+	Parse.initialize("q6NTBFdYRPR1oLOCDKVPTOEu14oRjFoFZFrh4Zks", "OA99A6vm4sKw0HfTUFtH9AbTC7qfVUto5K1auETq");
 	var GameAttendance = function(options){
 		this.options = $.extend(true, {}, this.defaults, options);
-		this.Player = Parse.Object.extend("Player");
+		this.options.onMainScreen = true;
 		this.Game = Parse.Object.extend("Game");
 		this.GamePlayer = Parse.Object.extend('GamePlayer');
 		this.local ={};
-		this.local.players = {};
 		this.local.allGames = {};
-		this.local.allPlayers = {};
 		this.local.attendanceByPlayer = [];
 		this.local.attendanceByGame = [];
 		this.local.attendanceByGameByPlayer = {};
@@ -22,7 +21,7 @@
 	};
 
 	GameAttendance.prototype.init = function(){
-		Parse.initialize("q6NTBFdYRPR1oLOCDKVPTOEu14oRjFoFZFrh4Zks", "OA99A6vm4sKw0HfTUFtH9AbTC7qfVUto5K1auETq");
+		//Parse.initialize("q6NTBFdYRPR1oLOCDKVPTOEu14oRjFoFZFrh4Zks", "OA99A6vm4sKw0HfTUFtH9AbTC7qfVUto5K1auETq");
 		this.containers = {};
 		this.containers.playerList = $('.js-player-game-list-container');
 		this.containers.playerInfo = $('.js-player-info-container');
@@ -31,82 +30,15 @@
 		this.containers.index = $('.js-index-container');
 		this.templates = {};
 		this.templates.gamesList = Handlebars.compile($('#game-template').html());
-		this.templates.playerList = Handlebars.compile($('#player-template').html());
 		this.players = null;
 		this.currentPlayer = {};
 		this.loadGames();
-		this.loadPlayers();
 		this.bindActions();
+		this.Players = new Players(); // loading Players Object
 		this.urlParams = this.parseUrl();
-		//this.initGames();
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createPlayerGameRelation('o1l8G900jk', 'bogHakqZX4', true);
 		//this.createGamePlayer('o1l8G900jk', 'bogHakqZX4', true);
-	};
-
-	/*
-	 * Intializes the scheduled games (Database function)
-	 */
-	GameAttendance.prototype.initGames = function(){
-		//week 1
-		this.createGame(new Date("September 20, 2014 12:00:00 PM EST"), 
-			"Randall's Island Field #25", 
-			"vs VenomCats", 1);
-		this.createGame(new Date("September 20, 2014 1:30:00 PM EST"), 
-			"Randall's Island Field #25", 
-			"@ VenomCats", 1);
-
-		// week 2
-		this.createGame(new Date("September 27, 2014 3:00:00 PM EST"), 
-			"Randall's Island Field #25", 
-			"@ Majestic Thunder", 2);
-		this.createGame(new Date("September 27, 2014 4:30:00 PM EST"), 
-			"Randall's Island Field #25", 
-			"vs Majestic Thunder", 2);
-		
-		// Week 3
-		this.createGame(new Date("October 4, 2014 1:00:00 PM EST"), 
-			"Randall's Island Field #22", 
-			"@ B-Bombers", 3);
-		this.createGame(new Date("October 4, 2014 2:30:00 PM EST"), 
-			"Randall's Island Field #22", 
-			"vs B-Bombers", 3);
-
-		// Week 4
-		this.createGame(new Date("October 18, 2014 2:30:00 PM EST"), 
-			"Randall's Island Field #24", 
-			"@ VenomCats", 4);
-		this.createGame(new Date("October 18, 2014 4:00:00 PM EST"), 
-			"Randall's Island Field #24", 
-			"vs VenomCats", 4);
-
-		// week 5
-		this.createGame(new Date("October 25, 2014 2:30:00 PM EST"), 
-			"Randall's Island Field #24", 
-			"vs Majestic Thunder", 5);
-		this.createGame(new Date("October 25, 2014 4:00:00 PM EST"), 
-			"Randall's Island Field #24", 
-			"@ Majestic Thunder", 5);
-
-		// week 6
-		this.createGame(new Date("November 1, 2014 1:00:00 PM EST"), 
-			"Randall's Island Field #22", 
-			"vs B-Bombers", 6);
-		this.createGame(new Date("November 1, 2014 2:30:00 PM EST"), 
-			"Randall's Island Field #22", 
-			"@ B-Bombers", 6);
-
-		// PlayOffs etc
-		this.createGame(new Date("November 8, 2014 10:00:00 AM EST"), 
-			"N/A", 
-			"MAKEUPS/PLAYOFFS", 7);
-		this.createGame(new Date("November 15, 2014 10:00:00 AM EST"), 
-			"N/A", 
-			"PLAYOFFS", 8);
-		this.createGame(new Date("November 22, 2014 10:00:00 AM EST"), 
-			"N/A", 
-			"PLAYOFFS", 9);
-
 	};
 
 	/**
@@ -189,6 +121,16 @@
 			self.showGameView(currentGameId);
 
 			self.updateUrl({"gameid" : currentGameId});
+		});
+
+		/*
+		 * Show the loaded Player Data to the screen
+		 */
+		$(document).on('dataLoadedAndParsed.players', function(e, playerData){
+			console.log("here");
+			playerData.isMainScreen = self.options.onMainScreen;
+			playerData.mode = self.options.mode;
+			$('.js-player-list-container').html(self.Players.createPlayerTable(playerData));
 		});
 	};
 
@@ -280,9 +222,11 @@
 	 */
 	GameAttendance.prototype.showGamePlayerData = function(){
 		var self = this;
-		var localPlayers = this.local.allPlayers;
+		var localPlayers = this.Players.local.allPlayers;
+		console.log(this.Players.local);
+		console.log("showing Game Player Data");
 		$('.js-game-info-container .js-player-list-container').hide();
-		$.each(this.local.allPlayers, function(key, value){
+		$.each(this.Players.local.allPlayers, function(key, value){
 			var player = this;
 			var currentAttendance = self.local.attendanceByPlayer[key];
 			if(currentAttendance != undefined) {
@@ -291,7 +235,7 @@
 				player.isAttending = undefined;
 			}
 		});
-		var playerList = this.templates.playerList(this.local);
+		var playerList = this.Players.createPlayerTable(this.Players.local);
 		$('.js-game-info-container .js-player-list-container').html(playerList).show();
 		this.getAndSetTotalPlayerCount($('.js-game-info-container .js-player-list-container'));
 	};
@@ -477,26 +421,6 @@
 	};
 
 	/**
-	 * Run Query to load players
-	 */
-	GameAttendance.prototype.loadPlayers = function(){
-		// gets all the stored players
-		var self = this;
-		var query = new Parse.Query(this.Player);
-		query.ascending('lastName');
-		query.find({
-		  success: function(results) {
-		  	self.local.players = results;
-		    self.setPlayerData();
-		  },
-		  error: function(object, error) {
-		    self.players = null;
-		    console.log("Error Loading Players", error);
-		  }});
-		return query;
-	};
-
-	/**
 	 * Update the game data
 	 */
 	GameAttendance.prototype.setGameData = function() {
@@ -523,30 +447,6 @@
 		self.showGameData();
 	};
 
-	/**
-	 * Sets the player data object
-	 */
-	GameAttendance.prototype.setPlayerData = function(){
-		var self = this;
-		if (this.local.players) {
-			$.each(this.local.players, function() {
-				var playerData= {
-					id: this.id,
-					firstName: this.get('firstName'),
-					lastName: this.get('lastName'),
-					number: this.get('number'),
-					positions: this.get('positions')
-				};
-				self.local.allPlayers[this.id] = playerData; 
-			});	
-			self.parseUrl();
-			if (self.urlParams.playerid) {
-				// show the player view
-				this.showPlayerView(self.urlParams.playerid);
-			}
-		}
-		self.showPlayerList(true, this.containers.index);
-	};
 
 	GameAttendance.prototype.resetPlayerValues = function(){
 		this.local.currentPlayer = {};
@@ -559,6 +459,225 @@
 		return moment(date).format('ddd, MMM D YYYY, h:mm A');
 	};
 
+	/**
+	 * Players Constructor
+	 */
+	var Players = function(options){
+		this.options = $.extend(true, {}, this.defaults, options);
+		this.Player = Parse.Object.extend("Player");
+		this.local = {};
+		this.local.players = {};
+		this.local.allPlayers = {};
+		//this.playerListTemplate = Handlebars.compile($('#player-template').html());
+		this.loadPlayers();
+	};
+
+	/**
+	 *	Generates Player List Table and returns html to be appended to view
+	 */
+	/*Players.prototype.createPlayerTable = function(data) {
+		return this.playerListTemplate(data);
+	};*/
+
+	/**
+	 * Set the Player data to a more friendly JSON format for Handlebars
+	 */
+	Players.prototype.setPlayerData = function(){
+		var self = this;
+		if (this.local.players) {
+			$.each(this.local.players, function() {
+				var playerData= {
+					id: this.id,
+					firstName: this.get('firstName'),
+					lastName: this.get('lastName'),
+					number: this.get('number'),
+					positions: this.get('positions')
+				};
+				self.local.allPlayers[this.id] = playerData; 
+			});
+
+			$.event.trigger('dataLoadedAndParsed.players', [self.local]);
+		}
+	};
+
+	/**
+	 *  Load the players from the database
+	 * 
+	 */
+	Players.prototype.loadPlayers = function(){
+		// gets all the stored players
+		var self = this;
+		var query = new Parse.Query(this.Player);
+		query.ascending('lastName');
+		query.find({
+		  success: function(results) {
+		  	self.local.players = results;
+		    self.setPlayerData();
+		  },
+		  error: function(object, error) {
+		    self.players = null;
+		    $.event.trigger('dataLoadFailed.players', [self.local]);
+		  }
+		});
+		return query;
+	};
+
+	var Positions = function(options) {
+		this.options = $.extend(true, {}, this.defaults, options);
+		this.PositionObj = Parse.Object.extend("Position");
+		this.local = {};
+		this.local.allPositions = {};
+		this.loadPositions();
+	};
+
+	/**
+	 *  Load the Positions from the database
+	 * 
+	 */
+	Positions.prototype.loadPositions = function(){
+		// gets all the stored players
+		var self = this;
+		var query = new Parse.Query(this.PositionObj);
+		query.ascending('PosId');
+		query.find({
+		  success: function(results) {
+		  	self.setPositionData(results);
+		  },
+		  error: function(object, error) {
+		    self.players = null;
+		    $.event.trigger('dataLoadFailed.Positions', [self.local]);
+		  }
+		});
+		return query;
+	};
+
+	/**
+	 * Set the Player data to a more friendly JSON format for Handlebars
+	 */
+	Positions.prototype.setPositionData = function(data){
+		var self = this;
+		if (data) {
+			$.each(data, function() {
+				var positionData= {
+					id: this.id,
+					name: this.get('Name'),
+					posId: this.get('PosId'),
+					abbrev: this.get('Abbrev')
+				};
+				self.local.allPositions[this.get('PosId')] = positionData; 
+			});
+
+
+			$.event.trigger('dataLoadedAndParsed.positions', [self.local]);
+		}
+	};
+	window.Positions = Positions;
+
+	var PlayerPositions = function(options) {
+		this.options = $.extend(true, {}, this.defaults, options);
+		this.PlayerPositionObj = Parse.Object.extend("PlayerPosition");
+		this.local = {};
+		this.local.allPlayerPositions = {};
+		this.loadPlayerPositions();
+	};
+
+	/**
+	 *  Load the Positions from the database
+	 * 
+	 */
+	PlayerPositions.prototype.loadPlayerPositions = function(){
+		// gets all the stored players
+		var self = this;
+		var query = new Parse.Query(this.PositionObj);
+		query.find({
+		  success: function(results) {
+		  	console.log(results);
+		  	//self.setPlayerPositionData(results);
+		  },
+		  error: function(object, error) {
+		    self.players = null;
+		    $.event.trigger('dataLoadFailed.Positions', [self.local]);
+		  }
+		});
+		return query;
+	};
+
+	/**
+	 * Set the Player data to a more friendly JSON format for Handlebars
+	 */
+	PlayerPositions.prototype.setPlayerPositionData = function(data){
+		var self = this;
+		if (data) {
+			$.each(data, function() {
+				var positionData= {
+					id: this.id,
+					name: this.get('Name'),
+					posId: this.get('PosId'),
+					abbrev: this.get('Abbrev')
+				};
+				self.local.allPositions[this.get('PosId')] = positionData; 
+			});
+
+
+			$.event.trigger('dataLoadedAndParsed.positions', [self.local]);
+		}
+	};
+
+
+	//player-position-template
+	var PlayerPositionsView = function(options){
+		this.options = $.extend(true, {}, this.defaults, options);
+		this.Players = new Players();
+		this.Positions = new Positions();
+		this.PlayerPositions = new PlayerPositions();
+		this.playerPositionListTemplate = Handlebars.compile($('#player-position-template').html());
+		this.init();
+	};
+
+	PlayerPositionsView.prototype.init = function(){
+		var self = this;
+		var playersLoaded = false;
+		var positionsLoaded = false;
+		$(document).on('dataLoadedAndParsed.positions', function(data){
+			positionsLoaded = true;
+			if (playersLoaded && positionsLoaded) {
+				self.showTable();
+			}
+			
+		});
+		$(document).on('dataLoadedAndParsed.positions, dataLoadedAndParsed.players', function(data){
+			playersLoaded = true;
+			if (playersLoaded && positionsLoaded) {
+				self.showTable();
+			}
+		});
+	};
+
+	PlayerPositionsView.prototype.bindTableActions = function() {
+		$('.js-player-position-list-container').on('click', '.js-position-toggle-btn', function(){
+			$(this).toggleClass('btn-success');
+			// get player id
+			var playerId = $(this).closest('.js-player-row').data('playerid');
+			// get pos id
+			var posId = $(this).data('posid');
+			console.log(playerId);
+			console.log(posId);
+		});
+	};
+
+	PlayerPositionsView.prototype.showTable = function() {
+		var data = {
+				players: this.Players.local.allPlayers,
+				positions: this.Positions.local.allPositions
+			};
+		//console.log(data);
+		$('.js-player-position-list-container').html(this.playerPositionListTemplate(data));
+		this.bindTableActions();
+	};
+
+	PlayerPositionsView.prototype.save
+
+	window.PlayerPositionsView = PlayerPositionsView;
 
 	// format date 
 	Handlebars.registerHelper("formatDate", function(date) {

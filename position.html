@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title>Attendance Tracker</title>
+    <link href="./stylesheets/screen.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div class="container">
+      <div class="panel panel-primary">
+          <div class="panel-body"
+          </div>
+        </div>
+        <div class="js-player-position-list-container">
+          <div class="spinner">
+            <div class="double-bounce1"></div>
+            <div class="double-bounce2"></div>
+          </div>
+        </div>
+    </div>
+    <footer>
+      &copy; 2014 <a target="_blank" href="http://ponzeka.com">Paige Ponzeka</a>
+    </footer>
+    <script id="player-position-template" type="text/x-handlebars-template">
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      {{#each players}}
+      <tr data-playerid="{{id}}" class="js-player-row">
+        <td>{{firstName}} {{lastName}}</td>
+        {{#each ../positions}}
+          <td><a class="btn btn-default js-position-toggle-btn" data-posid={{posId}}>{{abbrev}}</a>
+        {{/each}}
+      </tr>
+      {{/each}}
+    </table>
+  </script>
+  <script src="./js/jquery-1.11.1.min.js"></script>
+  <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+  <script src="./js/handlebars-v2.0.0.js"></script>
+  <script src="./js/moment.min.js"></script>
+  <script src="./js/gameAttendance.js"></script>
+  <script>
+    $(document).ready(function(){
+      var PlayerPositionsView  = new window.PlayerPositionsView();
+    });
+  </script>
+  </body>
+</html>
