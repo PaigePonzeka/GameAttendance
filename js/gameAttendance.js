@@ -389,6 +389,8 @@
 				} else if(gameId) {
 					self.showGamePlayerData();
 				}
+
+				console.log(self.local);
 		  },
 		  error: function(object, error) {
 		    console.log("Error Loading Game Players", error);
@@ -422,6 +424,8 @@
 	GameAttendance.prototype.setGameData = function() {
 		var self = this;
 		if (this.games) {
+			
+
 			$.each(this.games, function() {
 				var gameData = {
 					id : this.id,
@@ -434,7 +438,6 @@
 
 				self.local.allGames[this.id] = gameData; 
 			});	
-
 			if(self.urlParams.gameid) {
 				// show the game view
 				this.showGameView(self.urlParams.gameid);
@@ -491,7 +494,7 @@
 				};
 				self.local.allPlayers[this.id] = playerData; 
 			});
-
+			console.log(JSON.stringify(self.local.allPlayers));
 			$.event.trigger('dataLoadedAndParsed.players', [self.local]);
 		}
 	};
@@ -644,6 +647,7 @@
 			$.each(self.Players.local.allPlayers, function() {
 				this.positions = self.local.allPlayerPositions[this.id];
 			});
+			console.log(JSON.stringify(self.local));
 			$.event.trigger('dataLoadedAndParsed.PlayerPositions', [self.local]);
 		}
 	};
