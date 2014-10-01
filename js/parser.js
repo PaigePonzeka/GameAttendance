@@ -48,8 +48,8 @@
   Parser.prototype.load = function() {
     var self = this;
     var query = new Parse.Query(this.dataObject);
+    query = this.setQueryParameters(query);
     //query.ascending('lastName');
-    query.limit(1000); // TODO this could be a problem with game data... 
     query.find({
       success: function(results) {
         self.processResults(results);
@@ -60,6 +60,11 @@
         $.event.trigger('dataLoadFailed.' + self.name, [result]);
       }
     });
+  };
+
+  Parser.prototype.setQueryParameters = function(query){
+    query.limit(1000);
+    return query;
   };
 
   /**
@@ -109,6 +114,13 @@
     };
   };
 
+  PlayerParser.prototype.setQueryParameters = function(query){
+    query.ascending('lastName');
+    return query;
+  };
+
+  window.PlayerParser = PlayerParser;
+
   /**
    * GameParser Constructor
    */
@@ -119,6 +131,7 @@
     this.load();
   };
   window.inherits(GameParser, window.Parser);
+  
   GameParser.prototype.processResult_ = function(result){
     return {
       id : result.id,
@@ -129,6 +142,13 @@
       result: result.get('Result')
     };
   };
+
+  GameParser.prototype.setQueryParameters = function(query){
+    query.ascending('dateTime');
+    return query;
+  };
+
+  window.GameParser = GameParser;
 
   /**
    * PositionParser Constructor
@@ -237,7 +257,7 @@
     self.triggerLoadedEvent();
   };
 
-  var playerParser = new PlayerParser();
+ /*var playerParser = new PlayerParser();
   var gameParser = new GameParser();
   var positionParser = new PositionParser();
   var gamePlayersParser;
@@ -263,7 +283,7 @@
 
     $(document).on('dataLoadedAndProcessed.Position', function(e, localData){
     console.log('Position:', localData);
-  });
+  });*/
 
 })(window, document);
 
