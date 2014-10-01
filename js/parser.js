@@ -226,6 +226,8 @@
     self.triggerLoadedEvent();
   };
 
+  window.GamePlayersParser = GamePlayersParser;
+
   var PlayerPositionsParser = function(){
     window.Parser.call(this);
     console.log("Here");

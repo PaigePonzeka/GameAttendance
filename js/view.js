@@ -6,8 +6,6 @@
    */
   var IndexView = function(options){
     this.options = $.extend(true, {}, this.defaults, options);
-    var playerLoaded = false;
-          gameLoaded = false;
     // load the games and players
     this.playerParser = new window.PlayerParser();
     this.gameParser = new window.GameParser();
@@ -21,11 +19,9 @@
   IndexView.prototype.init = function(){
     var self = this;
     $(document).on('dataLoadedAndProcessed.Game', function(e, localData){
-      gameLoaded = true;
       self.showGameList(localData.jsonById);
     });
     $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
-      playerLoaded = true;
       self.showPlayerList(localData.jsonById);
     });
   };
@@ -39,6 +35,43 @@
   };
 
   window.IndexView = IndexView;
+
+  /**
+   * GameView Constructor
+   */
+  var GameView = function(options){
+    this.options = $.extend(true, {}, this.defaults, options);
+    this.init();
+    // load players
+    this.playerParser = new window.PlayerParser();
+    // load gamePlayers
+    this.gamePlayersParser = new window.GamePlayersParser();
+
+  };
+
+  GameView.prototype.init = function(){
+    var self = this;
+    var playersLoaded = false,
+        gamePlayersLoaded = false;
+    $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
+      playersLoaded = true;
+      if (playersLoaded && gamePlayersLoaded) {
+        self.showGamePlayerList(localData);
+      }
+    });
+    $(document).on('dataLoadedAndProcessed.GamePlayer', function(e, localData){
+      gamePlayersLoaded = true;
+      if (gamePlayersLoaded && playersLoaded) {
+        self.showGamePlayerList(localData.jsonById);
+      }
+    });
+  };
+
+  GameView.prototype.showGamePlayerList = function(){
+    console.log("Show Player List");
+  };
+
+  window.GameView = GameView;
 
   Handlebars.registerHelper("formatDate", function(date) {
     return moment(date).format('ddd, MMM D YYYY, h:mm A');
