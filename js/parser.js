@@ -1,22 +1,29 @@
-(function(){
+(function(window, document, undefined){
   Parse.initialize("q6NTBFdYRPR1oLOCDKVPTOEu14oRjFoFZFrh4Zks", "OA99A6vm4sKw0HfTUFtH9AbTC7qfVUto5K1auETq");
+
+  window.inherits = function(child, parent) {
+    /** @constructor */
+    function temp() {};
+    temp.prototype = parent.prototype;
+    child.superClass_ = parent.prototype;
+    child.prototype = new temp();
+    child.prototype.constructor = child;
+  };
+
+
   /**
    * @constructor Parser
    * Works with parse data objects from the parse library
    */
-  var Parser = function(options){
-    this.defaults = {
-      name: 'Object'
-    };
+  var Parser = function(){
     this.localData = {};
     this.localData.jsonById = {};
     this.localData.dataById = {};
-    this.options = $.extend(true, {}, this.defaults, options);
-    this.init();
+    this.name = name;;
   };
 
   Parser.prototype.init = function() {
-    this.dataObject = Parse.Object.extend(this.options.name);
+    this.dataObject = Parse.Object.extend(this.name);
   };
 
   /**
@@ -27,10 +34,10 @@
 
     newObject.save(data, {
       success: function(result) {
-        $.event.trigger('dataSaved.' + this.options.name, [result]);
+        $.event.trigger('dataSaved.' + this.name, [result]);
       },
       error: function(result, error) {
-        $.event.trigger('dataSaveError.' + this.options.name , [result]);
+        $.event.trigger('dataSaveError.' + this.name , [result]);
       }
     });
   };
@@ -42,14 +49,15 @@
     var self = this;
     var query = new Parse.Query(this.dataObject);
     //query.ascending('lastName');
+    query.limit(1000); // TODO this could be a problem with game data... 
     query.find({
       success: function(results) {
         self.processResults(results);
-        $.event.trigger('dataLoaded.' + self.options.name, [results]);
+        $.event.trigger('dataLoaded.' + self.name, [results]);
       },
       error: function(result, error) {
         self.players = null;
-        $.event.trigger('dataLoadFailed.' + self.options.name, [result]);
+        $.event.trigger('dataLoadFailed.' + self.name, [result]);
       }
     });
   };
@@ -64,7 +72,11 @@
         self.localData.jsonById[obj.id] = obj;
         self.localData.dataById[obj.id] = this;
       });
-      $.event.trigger('dataLoadedAndProcessed.' + self.options.name, [self.localData]);
+      self.triggerLoadedEvent();
+   };
+
+   Parser.prototype.triggerLoadedEvent = function(){
+    $.event.trigger('dataLoadedAndProcessed.' + this.name, [this.localData]);
    };
 
    /**
@@ -73,9 +85,21 @@
    Parser.prototype.processResult_ =function(result){
     // intentionally empty
    };
-;
-  var PlayerParser = new Parser({name:'Player'});
-  PlayerParser.processResult_ = function(result){
+   window.Parser = Parser;
+
+/**
+ * PlayerParser Constructor
+ * @param {[type]} options [description]
+ */
+  var PlayerParser = function() {
+    window.Parser.call(this);
+    this.name = 'Player';
+    this.init();
+    this.load();
+  };
+  window.inherits(PlayerParser, window.Parser);
+
+  PlayerParser.prototype.processResult_ = function(result){
     return {
       id: result.id,
       firstName: result.get('firstName'),
@@ -84,53 +108,163 @@
       positions: result.get('positions')
     };
   };
-  PlayerParser.load();
-  //console.log("Player Data:", PlayerParser.localData);
 
-  var GameParser = new Parser({name: "Game"});
-  GameParser.processResult_ = function(result){
+  /**
+   * GameParser Constructor
+   */
+  var GameParser = function() {
+    window.Parser.call(this);
+    this.name = 'Game';
+    this.init();
+    this.load();
+  };
+  window.inherits(GameParser, window.Parser);
+  GameParser.prototype.processResult_ = function(result){
     return {
-          id : result.id,
-          field: result.get('field'),
-          dateTime: result.get('dateTime'),
-          opponent: result.get('opponent'),
-          week: result.get('week'),
-          result: result.get('Result')
+      id : result.id,
+      field: result.get('field'),
+      dateTime: result.get('dateTime'),
+      opponent: result.get('opponent'),
+      week: result.get('week'),
+      result: result.get('Result')
     };
   };
+
+  /**
+   * PositionParser Constructor
+   */
+  var PositionParser = function(){
+    window.Parser.call(this);
+    this.name = 'Position';
+    this.init();
+    this.load();
+  };
+
+  window.inherits(PositionParser, window.Parser);
+  PositionParser.prototype.processResult_ = function(result){
+    return {
+      id: result.get('PosId'),
+      name: result.get('Name'),
+      posId: result.get('PosId'),
+      abbrev: result.get('Abbrev')
+    };
+  };
+
+  var GamePlayersParser = function(){
+    window.Parser.call(this);
+    this.name = 'GamePlayer';
+    this.localData.jsonByPlayerId = {};
+    this.localData.jsonByGameId = {};
+    this.localData.dataByPlayerId = {};
+    this.localData.dataByGameId = {};
+    this.init();
+    this.load();
+  };
+  window.inherits(GamePlayersParser, window.Parser);
+  GamePlayersParser.prototype.processResult_ = function(result){
+    return {
+      playerId: result.get('playerId'),
+      gameId: result.get('gameId'),
+      isAttending: result.get('isAttending')
+    };
+  };
+
+  GamePlayersParser.prototype.processResults = function(results){
+    var self = this;
+    $.each(results, function(){
+      var obj = self.processResult_(this);
+      var playerJsonArray = self.localData.jsonByPlayerId[obj.playerId];
+      var gameJsonArray = self.localData.jsonByGameId[obj.gameId];
+      var gameDataArray = self.localData.dataByGameId[obj.gameId];
+      var playerDataArray = self.localData.dataByPlayerId[obj.playerId];
+
+      if (!playerJsonArray) {
+        playerJsonArray = [];
+      }
+
+      if (!gameJsonArray) {
+        gameJsonArray = [];
+      }
+
+      if (!gameDataArray) {
+        gameDataArray = [];
+      }
+
+      if (!playerDataArray) {
+        playerDataArray = [];
+      }
+
+      playerJsonArray.push(obj);
+      gameJsonArray.push(obj);
+      gameDataArray.push(this);
+      playerDataArray.push(this);
+      self.localData.jsonByPlayerId[obj.playerId] = playerJsonArray;
+      self.localData.jsonByGameId[obj.gameId] = gameJsonArray;
+      self.localData.dataByPlayerId[obj.playerId]= playerDataArray;
+      self.localData.dataByGameId[obj.gameId] = gameDataArray;
+    });
+    self.triggerLoadedEvent();
+  };
+
+  var PlayerPositionsParser = function(){
+    window.Parser.call(this);
+    console.log("Here");
+    this.name = 'PlayerPosition';
+    this.localData.jsonByPlayerId = {};
+    this.localData.jsonByPositionId = {};
+    this.localData.dataByPlayerId = {};
+    this.localData.dataByPositionId = {};
+    this.init();
+    this.load();
+  };
+  window.inherits(PlayerPositionsParser, window.Parser);
+  PlayerPositionsParser.prototype.processResult_ = function(result){
+    return {
+      playerId: result.get('playerId'),
+      positionId: result.get('positionId')
+    };
+  };
+
+  PlayerPositionsParser.prototype.processResults = function(results){
+    var self = this;
+    $.each(results, function(){
+      var obj = self.processResult_(this);
+      self.localData.jsonByPlayerId[obj.playerId] = obj;
+      self.localData.jsonByPositionId[obj.positionId] = obj;
+      self.localData.dataByPlayerId[obj.playerId]= this;
+      self.localData.dataByPositionId[obj.positionId] = this;
+    });
+    self.triggerLoadedEvent();
+  };
+
+  var playerParser = new PlayerParser();
+  var gameParser = new GameParser();
+  var positionParser = new PositionParser();
+  var gamePlayersParser;
+  var positionPlayersParser;
+
+  // TESTING DATA 
   $(document).on('dataLoadedAndProcessed.Game', function(e, localData){
-    console.log(localData);
+    console.log('Game:', localData);
+    gamePlayerParser = new GamePlayersParser();
+    // load gamePlayers
+    $(document).on('dataLoadedAndProcessed.GamePlayer', function(e, localData){
+      console.log("Game Player:", localData);
+    });
   });
-  GameParser.load();
+  $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
+    console.log('Player:', localData);
+          positionPlayersParser = new PlayerPositionsParser();
+    $(document).on('dataLoadedAndProcessed.PlayerPosition', function(e, localData){
 
-
-  var PositionParser = new Parser({name: "Position"});
-  PositionParser.processResult_ = function(result){
-    return {
-          id: result.get('PosId'),
-          name: result.get('Name'),
-          posId: result.get('PosId'),
-          abbrev: result.get('Abbrev')
-    };
-  };
-  $(document).on('dataLoadedAndProcessed.Position', function(e, localData){
-    console.log("position", localData);
+      console.log('PositionPlayer', localData);
+    });
   });
-  PositionParser.load();
 
-  var PlayerPositionParser = new Parser({name: "PlayerPosition"});
-  PlayerPositionParser.processResult_ = function(result){
-    console.log(result);
-    return {
-        id: result.get('playerId') + '-' + result.get('positionId'),
-        position: result.get('positionId'),
-        player: result.get('playerId')
-    };
-  };
-  $(document).on('dataLoadedAndProcessed.PlayerPosition', function(e, localData){
-    console.log("Playerposition", localData);
+    $(document).on('dataLoadedAndProcessed.Position', function(e, localData){
+    console.log('Position:', localData);
   });
-  PlayerPositionParser.load();
-}());
+
+})(window, document);
 
 
