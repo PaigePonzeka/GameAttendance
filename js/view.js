@@ -147,13 +147,8 @@ $.extend(Template.prototype, {
     // load the games and players
     this.playerParser = new window.PlayerParser();
     this.gameParser = new window.GameParser();
-    this.gameTemplate = Handlebars.compile($('#game-template').html());
     this.gameContainer = $('.js-game-list');
-    this.playerTemplate = Handlebars.compile($('#player-template').html());
     this.playerContainer = $('.js-player-list');
-    T.render('template', function(t){
-      console.log(t());
-    });
     this.init();
   };
 
@@ -169,11 +164,17 @@ $.extend(Template.prototype, {
   };
 
   IndexView.prototype.showGameList = function(data) {
-    this.gameContainer.html(this.gameTemplate(data));
+    var self = this;
+    T.render('games', function(generateTemplate){
+      self.gameContainer.html(generateTemplate(data));
+    });
   };
 
   IndexView.prototype.showPlayerList = function(data) {
-    this.playerContainer.html(this.playerTemplate(data));
+    var self = this;
+    T.render('players', function(generateTemplate){
+      self.playerContainer.html(generateTemplate(data));
+    });
   };
 
   window.IndexView = IndexView;

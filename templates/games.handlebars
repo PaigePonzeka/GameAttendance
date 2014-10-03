@@ -1,0 +1,34 @@
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Week</th>
+      <th>Date</th>
+      <th>Field</th>
+      <th>Opponent</th>
+      <th>Result</th>
+      {{#if isMainScreen}}
+        <th></th>
+      {{else}}
+        <th>Attending?</th>
+      {{/if}}
+    </tr>
+  </thead>
+  {{#each this}}
+    <tr class="js-game-player-row {{#if result}} game-played{{/if}}">
+      <td>{{week}}</td>
+      <td>
+        {{formatDate dateTime}}
+      </td>
+      <td>
+        {{field}}
+      </td>
+      <td>
+        {{opponent}}
+      </td>
+      <td>{{result}}</td>
+      <td class="td-actions">
+        <a href="./game.html#gameId={{id}}" class="btn btn-primary js-show-game-btn" data-game-id={{id}}>View</a>
+      </td>
+    </tr>
+  {{/each}}
+</table>
