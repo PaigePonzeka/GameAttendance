@@ -20,34 +20,6 @@
         </div>
     </div>
   </body>
-  <script id="player-template" type="text/x-handlebars-template">
-    <table class="table table-striped table-bordered player-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th class="td-center">#</th>
-          {{#if isMainScreen}}
-            <th></th>
-          {{else}}
-            <th class="td-center">Attending?</th>
-          {{/if}}
-        </tr>
-      </thead>
-      {{#each this}}
-        <tr class="js-game-player-row">
-          <td>
-            {{lastName}}, {{firstName}} 
-          </td>
-          <td class="td-center">
-            {{number}}
-          </td>
-          <td class="td-actions">
-              <a href="#" class="btn btn-primary js-update-player-btn" data-player-id={{id}}>Update</a>
-          </td>
-        </tr>
-      {{/each}}
-    </table>
-  </script>
   <script src="./js/jquery-1.11.1.min.js"></script>
   <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
   <script src="./js/handlebars-v2.0.0.js"></script>

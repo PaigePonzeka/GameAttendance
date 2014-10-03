@@ -49,7 +49,6 @@
     var self = this;
     var query = new Parse.Query(this.dataObject);
     query = this.setQueryParameters(query);
-    //query.ascending('lastName');
     query.find({
       success: function(results) {
         self.processResults(results);
@@ -62,7 +61,21 @@
     });
   };
 
+  /**
+   * Uses the set params to query on the object
+   * Current structure {'colunmName or Ascending', 'value or ascendingColumn'}
+   * @param {object} query Parse query object
+   */
   Parser.prototype.setQueryParameters = function(query){
+    if (this.options.params) {
+      $.each(this.options.params, function(key, value){
+        if (key === 'ascending') {
+          query.ascending(value);
+        } else {
+          query.equalTo(key, value);
+        }
+      });
+    }
     query.limit(1000);
     return query;
   };
@@ -148,15 +161,6 @@
    * {columnName: 'ColumnName', value: 'Value'}
    * @param {[type]} query [description]
    */
-  GameParser.prototype.setQueryParameters = function(query){
-    console.log('eerer');
-    query.ascending('dateTime');
-    console.log(this.options.params);
-    if (this.options.params) {
-      query.equalTo(this.options.params.columnName, this.options.params.value);
-    }
-    return query;
-  };
 
   window.GameParser = GameParser;
 
@@ -180,15 +184,16 @@
     };
   };
 
-  var GamePlayersParser = function(){
+  var GamePlayersParser = function(options){
     window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
     this.name = 'GamePlayer';
     this.localData.jsonByPlayerId = {};
     this.localData.jsonByGameId = {};
-    this.localData.dataByPlayerId = {};
-    this.localData.dataByGameId = {};
+    this.localData.dataByPlayerId = [];
+    this.localData.dataByGameId = [];
+    this.localData.databyPlayerIdGameId = [];
     this.init();
-    this.load();
   };
   window.inherits(GamePlayersParser, window.Parser);
   GamePlayersParser.prototype.processResult_ = function(result){
@@ -207,7 +212,7 @@
       var gameJsonArray = self.localData.jsonByGameId[obj.gameId];
       var gameDataArray = self.localData.dataByGameId[obj.gameId];
       var playerDataArray = self.localData.dataByPlayerId[obj.playerId];
-
+      var playerGameArray = self.localData.databyPlayerIdGameId[obj.playerId + '-' + obj.gameId];
       if (!playerJsonArray) {
         playerJsonArray = [];
       }
@@ -224,23 +229,53 @@
         playerDataArray = [];
       }
 
+      if (!playerGameArray) {
+        playerGameArray = [];
+      }
+
       playerJsonArray.push(obj);
       gameJsonArray.push(obj);
       gameDataArray.push(this);
       playerDataArray.push(this);
+      playerGameArray.push(this);
       self.localData.jsonByPlayerId[obj.playerId] = playerJsonArray;
       self.localData.jsonByGameId[obj.gameId] = gameJsonArray;
       self.localData.dataByPlayerId[obj.playerId]= playerDataArray;
       self.localData.dataByGameId[obj.gameId] = gameDataArray;
+      self.localData.databyPlayerIdGameId[obj.playerId + '-' + obj.gameId] = playerGameArray;
     });
     self.triggerLoadedEvent();
+  };
+
+  GamePlayersParser.prototype.updateOrCreate = function(data, callback){
+    var gamePlayer = {};
+
+    if (data.playerId && data.gameId) {
+      gamePlayer = this.localData.databyPlayerIdGameId[data.playerId + '-' + data.gameId];
+    }
+
+    if (!gamePlayer) {
+      gamePlayer = new this.dataObject();
+      gamePlayer.set('playerId', data.playerId);
+      gamePlayer.set('gameId', data.gameId);
+    } else {
+      gamePlayer = gamePlayer[0];
+    }
+    gamePlayer.set('isAttending', data.isAttending);
+    gamePlayer.save(null, {
+      success: function(gamePlayer) {
+        console.log("game Status saved!", gamePlayer);
+        if (typeof callback === 'function') {
+          callback();
+        }
+      }
+    });
   };
 
   window.GamePlayersParser = GamePlayersParser;
 
   var PlayerPositionsParser = function(){
     window.Parser.call(this);
-    console.log("Here");
     this.name = 'PlayerPosition';
     this.localData.jsonByPlayerId = {};
     this.localData.jsonByPositionId = {};
