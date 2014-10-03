@@ -124,8 +124,9 @@
   /**
    * GameParser Constructor
    */
-  var GameParser = function() {
+  var GameParser = function(options) {
     window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
     this.name = 'Game';
     this.init();
     this.load();
@@ -143,8 +144,17 @@
     };
   };
 
+  /**
+   * {columnName: 'ColumnName', value: 'Value'}
+   * @param {[type]} query [description]
+   */
   GameParser.prototype.setQueryParameters = function(query){
+    console.log('eerer');
     query.ascending('dateTime');
+    console.log(this.options.params);
+    if (this.options.params) {
+      query.equalTo(this.options.params.columnName, this.options.params.value);
+    }
     return query;
   };
 
