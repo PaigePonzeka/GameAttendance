@@ -10,55 +10,56 @@
  *   });
  * Source: https://github.com/wycats/handlebars.js/issues/82
  */
-var Template = function() {
-    this.cached = {};
-};
-var T = new Template();
-$.extend(Template.prototype, {
-    render: function(name, callback) {
-        if (T.isCached(name)) {
-            callback(T.cached[name]);
-        } else {
-            $.get(T.urlFor(name), function(raw) {
-                T.store(name, raw);
-                T.render(name, callback);
-            });
-        }
-    },
-    renderSync: function(name, callback) {
-        if (!T.isCached(name)) {
-            T.fetch(name);
-        }
-        T.render(name, callback);
-    },
-    prefetch: function(name) {
-        $.get(T.urlFor(name), function(raw) { 
-            T.store(name, raw);
-        });
-    },
-    fetch: function(name) {
-        // synchronous, for those times when you need it.
-        if (! T.isCached(name)) {
-            var raw = $.ajax({'url': T.urlFor(name), 'async': false}).responseText;
-            T.store(name, raw);         
-        }
-    },
-    isCached: function(name) {
-        return !!T.cached[name];
-    },
-    store: function(name, raw) {
-        T.cached[name] = Handlebars.compile(raw);
-    },
-    urlFor: function(name) {
-        return "./templates/"+ name + ".handlebars";
-    }
-});
+  var Template = function() {
+      this.cached = {};
+  };
+  var T = new Template();
+  $.extend(Template.prototype, {
+      render: function(name, callback) {
+          if (T.isCached(name)) {
+              callback(T.cached[name]);
+          } else {
+              $.get(T.urlFor(name), function(raw) {
+                  T.store(name, raw);
+                  T.render(name, callback);
+              });
+          }
+      },
+      renderSync: function(name, callback) {
+          if (!T.isCached(name)) {
+              T.fetch(name);
+          }
+          T.render(name, callback);
+      },
+      prefetch: function(name) {
+          $.get(T.urlFor(name), function(raw) { 
+              T.store(name, raw);
+          });
+      },
+      fetch: function(name) {
+          // synchronous, for those times when you need it.
+          if (! T.isCached(name)) {
+              var raw = $.ajax({'url': T.urlFor(name), 'async': false}).responseText;
+              T.store(name, raw);         
+          }
+      },
+      isCached: function(name) {
+          return !!T.cached[name];
+      },
+      store: function(name, raw) {
+          T.cached[name] = Handlebars.compile(raw);
+      },
+      urlFor: function(name) {
+          return "./templates/"+ name + ".handlebars";
+      }
+  });
+
   var View = function(options) {
     this.options = $.extend(true, {}, this.defaults, options);
     this.params = this.parseUrl();
     this.load();
   };
-
+  window.View = View;
   /**
    * Parses parameters from the url (if there are none return an empty object)
    * @return {Object} URL parameters
@@ -66,7 +67,7 @@ $.extend(Template.prototype, {
   View.prototype.parseUrl = function () {
     var params = window.location.hash,
         decodedParams;
-    
+
     if (params) {
       params = params.substring(1, params.length);
     }
@@ -157,7 +158,7 @@ $.extend(Template.prototype, {
     this.playerContainer = $('.js-player-list');
     this.init();
   };
-
+  window.inherits(IndexView, View);
 
   IndexView.prototype.init = function(){
     var self = this;
@@ -165,7 +166,10 @@ $.extend(Template.prototype, {
       self.showGameList(localData.jsonById);
     });
     $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
-      self.showPlayerList(localData.jsonById);
+      var data = {
+        players: localData
+      };
+      self.showPlayerList(data);
     });
   };
 
@@ -184,19 +188,13 @@ $.extend(Template.prototype, {
   var GameView = function(options){
     this.playerParser = new window.PlayerParser();
     this.playersLoaded = false;
-
     View.call(this);
     this.playerContainer = $('.js-player-list');
     this.init();
     this.options = $.extend(true, {}, this.defaults, options);
 
-    //this.init();
-    // load players
-
-    // load gamePlayers
-   //this.gamePlayersParser = new window.GamePlayersParser();
-
   };
+
   window.inherits(GameView, View);
 
   GameView.prototype.load = function() {
@@ -253,7 +251,6 @@ $.extend(Template.prototype, {
   GameView.prototype.onGamePlayerLoaded = function(data) {
     console.log("Game Player Loaded", data);
     // iterate through and set the player as attending
-    
   };
 
   /**
@@ -384,8 +381,6 @@ $.extend(Template.prototype, {
     gamePlayerParser.load();
 
     $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){ 
-     // console.log('GamePlayersLoaded', data);
-      // show all the players and 
     });
   };
 
@@ -409,6 +404,43 @@ $.extend(Template.prototype, {
 
   window.GameView = GameView;
 
+  var PlayerView = function(options){
+    this.gameContainer = $('.js-game-list');
+    View.call(this);
+    
+    //this.init();
+
+  };
+  window.inherits(PlayerView, View);
+
+  /*PlayerView.prototype.load = function() {
+    PlayerView.superClass_.load.call(this);
+  };*/
+
+  /**
+   * Load a Single Player View
+   */
+  PlayerView.prototype.loadQueriedView = function() {
+    // query for this player id
+    console.log(this.params);
+    if (this.params.playerid) {
+      this.loadSinglePlayerView();
+    } 
+  };
+
+  /**
+   *  Query single player details, update the title
+   */
+  PlayerView.prototype.loadSinglePlayerView = function() {
+    var playerParser = window.PlayerParser( { params :{
+      playerId: this.params.playerid
+    }});
+  };
+
+  window.PlayerView = PlayerView;
+  /**
+   * ----------- Global Utilities ----------
+   */
   var justTime = function(dateObj) {
     return moment(dateObj).format(' h:mm A');
   };

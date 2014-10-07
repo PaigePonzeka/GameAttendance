@@ -138,6 +138,11 @@
    * GameParser Constructor
    */
   var GameParser = function(options) {
+    this.defaults = {
+      params : {
+        ascending: 'dateTime'
+      }
+    };
     window.Parser.call(this);
     this.options = $.extend(true, {}, this.defaults, options);
     this.name = 'Game';
@@ -156,6 +161,7 @@
       result: result.get('Result')
     };
   };
+
 
   /**
    * {columnName: 'ColumnName', value: 'Value'}
@@ -264,7 +270,6 @@
     gamePlayer.set('isAttending', data.isAttending);
     gamePlayer.save(null, {
       success: function(gamePlayer) {
-        console.log("game Status saved!", gamePlayer);
         if (typeof callback === 'function') {
           callback();
         }
