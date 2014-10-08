@@ -125,19 +125,36 @@
     }
   };
 
+  /**
+   * Load full view without any queried data
+   * @return {[type]} [description]
+   */
   View.prototype.loadFullView = function()  {
     // load everything
   };
-
+  /**
+   * load queried view if there are params in the url
+   * @return {[type]} [description]
+   */
   View.prototype.loadQueriedView = function() {
     // load only specific data
     //console.log("load Queried View");
   };
 
+  /**
+   * Set the title (assuming title is 'js-title')
+   * @param {[type]} titleContent [description]
+   */
   View.prototype.setTitle = function(titleContent){
     $('.js-title').html(titleContent);
   };
 
+  /**
+   * Uses Ajax template loading library to load the handlebars player list template
+   *  (used across views)
+   * @param  {[type]} data contains player information in json format players : {jsonById: [playerinfohere]}
+   * @return {[type]}      [description]
+   */
   View.prototype.showPlayerList = function(data) {
     var self = this;
     T.render('players', function(generateTemplate){
@@ -146,12 +163,74 @@
   };
 
   /**
+   * Uses Ajax template loading library to load the handlebars games list template
+   *  (used across views)
+   * @param  {[type]} data contains player information in json format games : {jsonById: [playerinfohere]}
+   * @return {[type]}      [description]
+   */
+  View.prototype.showGameList = function(data) {
+    var self = this;
+    T.render('games', function(generateTemplate){
+      self.gameContainer.html(generateTemplate(data));
+    });
+  };
+
+  /**
+   * Table interactions for attendance buttons Yes/No
+   * All buttons are assumed to have a data-playerid and data-gameid attributer
+   * @return {JQueryObject} the table container
+   */
+  View.prototype.bindAttendanceTableActions = function($container){
+    var self = this;
+    // When the user clicks a button update the datebase value and the view
+    $container.on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
+      // update the playerGame relationship
+      var $this = $(this),
+          playerId = $this.data('player-id'),
+          gameId  = $this.data('game-id');
+
+      self.attendanceButtonAction(playerId, gameId, $this);
+    });
+  };
+
+  /**
+   * assumes subclasses will have a gamePlayerParser attached to the parent
+   * this might break stuff .. sets the action on the attendance button and updates the 
+   * data on the server
+   * 
+   * @param  {string} playerId player id from the datebase 
+   * @param  {string} gameId   game id from the datebase
+   * @param  {jqueryObject} $button  clicked button
+   */
+  View.prototype.attendanceButtonAction = function(playerId, gameId, $button) {
+    var isAttending = false;
+
+    if ($button.hasClass('js-player-yes-btn')) {
+      isAttending = true;
+    }
+    var data = {
+      'playerId' : playerId,
+      'gameId' : gameId,
+      'isAttending' : isAttending
+    };
+    // change the view to show that data is loading
+    var setRowClass = function(isAttending){
+      $button.closest('.js-game-player-row').toggleClass('game-attending-row', isAttending);
+      $button.closest('.js-game-player-row').toggleClass('game-not-attending-row', !isAttending);
+    }
+
+    this.gamePlayerParser.updateOrCreate(data, setRowClass(isAttending));
+    var $parent = $button.closest('.js-player-list-container');
+  };
+
+
+
+  /*************************************
    * IndexView constructor
    * Shows playerlist and shows gamelist
-   */
+   **************************************/
   var IndexView = function(options){
     this.options = $.extend(true, {}, this.defaults, options);
-    // load the games and players
     this.playerParser = new window.PlayerParser();
     this.gameParser = new window.GameParser();
     this.gameContainer = $('.js-game-list');
@@ -160,10 +239,16 @@
   };
   window.inherits(IndexView, View);
 
+  /**
+   * intialize
+   */
   IndexView.prototype.init = function(){
     var self = this;
     $(document).on('dataLoadedAndProcessed.Game', function(e, localData){
-      self.showGameList(localData.jsonById);
+      var data = {
+        games: localData
+      };
+      self.showGameList(data);
     });
     $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
       var data = {
@@ -172,19 +257,14 @@
       self.showPlayerList(data);
     });
   };
-
-  IndexView.prototype.showGameList = function(data) {
-    var self = this;
-    T.render('games', function(generateTemplate){
-      self.gameContainer.html(generateTemplate(data));
-    });
-  };
-
   window.IndexView = IndexView;
 
-  /**
+  /*****************************
    * GameView Constructor
-   */
+   * Shows the entire games list (TODO), 
+   * Shows specific games if queried in the params, 
+   * Shows week view iv queried in the params (TODO)
+   ******************************/
   var GameView = function(options){
     this.playerParser = new window.PlayerParser();
     this.playersLoaded = false;
@@ -192,26 +272,24 @@
     this.playerContainer = $('.js-player-list');
     this.init();
     this.options = $.extend(true, {}, this.defaults, options);
-
   };
-
   window.inherits(GameView, View);
+
 
   GameView.prototype.load = function() {
     GameView.superClass_.load.call(this);
     this.data = {};
-    this.data.isGameView = true;
+    this.data.isEditView = true;
   };
 
   GameView.prototype.init = function(){
     var self = this;
     this.bindPlayersLoaded();
-    this.bindPlayerTableActions();
+    this.bindAttendanceTableActions(this.playerContainer);
   };
 
   /**
    * Load the title and required data for the single game view
-   * @return {[type]} [description]
    */
   GameView.prototype.loadSingleGameView = function(){
     var self = this;
@@ -220,7 +298,7 @@
     }),
     self = this;
 
-     // when the single game details are loaded display the title
+    // when the single game details are loaded display the title
     $(document).on('dataLoadedAndProcessed.Game',function(e, data){
       self.onGameLoaded(data);
     });
@@ -231,32 +309,21 @@
     });
     this.gamePlayerParser.load();
      $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){
-      self.onGamePlayerLoaded(data);
       self.data.gamePlayer = data;
       // update the player object to show the isAttending status
       $.each(data.jsonByPlayerId, function(key, value){
         var isAttending = value[0].isAttending;
         self.data.players.jsonById[key].isAttending = isAttending;
-
       });
+
       self.showPlayerList(self.data);
     });
   };
 
   /**
-   * What to do when GamePlayer Data is loaded
-   * @param  {[type]} data [description]
-   * @return {[type]}      [description]
-   */
-  GameView.prototype.onGamePlayerLoaded = function(data) {
-    console.log("Game Player Loaded", data);
-    // iterate through and set the player as attending
-  };
-
-  /**
    * What to do when the game data is loaded
-   * @param  {[type]} data [description]
-   * @return {[type]}      [description]
+   *  Sets the title if we retrive any single game data
+   * @param  {object} data loaded data
    */
   GameView.prototype.onGameLoaded = function(data){
     var game = data.jsonById[this.params.gameid];
@@ -268,8 +335,7 @@
 
   /**
    * What to do when player data is loaded
-   * @param  {[type]} data [description]
-   * @return {[type]}      [description]
+   * @param  {object} data player data
    */
   GameView.prototype.onPlayerLoaded = function(data) {
     this.data.players = data;
@@ -285,6 +351,9 @@
     }
   };
 
+  /**
+   * TODO - Load Week view if in the url params
+   */
   GameView.prototype.loadWeekView = function() {
     var gameParser = new GameParser({params: {
       columnName: 'week',
@@ -316,53 +385,8 @@
   };
 
   /**
-   * Table interactions
-   * @return {[type]} [description]
-   */
-  GameView.prototype.bindPlayerTableActions = function(){
-    var self = this;
-    // When the user clicks a button update the datebase value and the view
-    this.playerContainer.on('click', '.js-player-yes-btn, .js-player-no-btn', function(){
-      // update the playerGame relationship
-      var $this = $(this),
-          playerId = $this.data('player-id'),
-          gameId  = $this.data('game-id');
-
-      self.attendanceButtonAction(playerId, gameId, $this);
-    });
-  };
-
-  /**
-   * When the user s
-   * @param  {string} playerId player id from the datebase 
-   * @param  {string} gameId   game id from the datebase
-   * @param  {jqueryObject} $button  clicked button
-   * @return {[type]}          [description]
-   */
-  GameView.prototype.attendanceButtonAction = function(playerId, gameId, $button) {
-    var isAttending = false;
-
-    if ($button.hasClass('js-player-yes-btn')) {
-      isAttending = true;
-    }
-    var data = {
-      'playerId' : playerId,
-      'gameId' : gameId,
-      'isAttending' : isAttending
-    };
-    // change the view to show that data is loading
-    var setRowClass = function(isAttending){
-      $button.closest('.js-game-player-row').toggleClass('game-attending-row', isAttending);
-      $button.closest('.js-game-player-row').toggleClass('game-not-attending-row', !isAttending);
-    }
-
-    this.gamePlayerParser.updateOrCreate(data, setRowClass(isAttending));
-    var $parent = $button.closest('.js-player-list-container');
-
-  };
-
-  /**
-   * Load game players details for the week
+   * TODO - Load game players details for the week
+   * TODO - what to do if we have more then two games a week?
    */
   GameView.prototype.loadWeekGamePlayers = function(gameIds){
     // load the game player data for each gameId
@@ -379,13 +403,10 @@
       return mainQuery;
     };
     gamePlayerParser.load();
-
-    $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){ 
-    });
   };
 
   /**
-   * Returns a string that is the week view title
+   * TODO - Returns a string that is the week view title
    * @return {string} string of what the title should look like
    */
   GameView.prototype.getWeekTitle = function(games){
@@ -401,28 +422,30 @@
     title += ' Starting At:' + justTime(gameDate);
     return title;
   };
-
   window.GameView = GameView;
 
+
+  /*****************************
+   * PlayerView Constructor
+   * Shows the entire player list (TODO), 
+   * Shows specific players if queried in the params
+   ******************************/
   var PlayerView = function(options){
     this.gameContainer = $('.js-game-list');
+    this.data = {};
+    this.data.isEditView = true;
     View.call(this);
-    
     //this.init();
 
   };
   window.inherits(PlayerView, View);
 
-  /*PlayerView.prototype.load = function() {
-    PlayerView.superClass_.load.call(this);
-  };*/
 
   /**
-   * Load a Single Player View
+   * Load a Player Queried view
    */
   PlayerView.prototype.loadQueriedView = function() {
     // query for this player id
-    console.log(this.params);
     if (this.params.playerid) {
       this.loadSinglePlayerView();
     } 
@@ -432,15 +455,64 @@
    *  Query single player details, update the title
    */
   PlayerView.prototype.loadSinglePlayerView = function() {
-    var playerParser = window.PlayerParser( { params :{
-      playerId: this.params.playerid
-    }});
+    var playerParser = new window.PlayerParser( { params :{
+      objectId: this.params.playerid
+    }}),
+    self = this;
+    this.data.playerId = this.params.playerid;
+    this.bindAttendanceTableActions(this.gameContainer);
+    $(document).on('dataLoadedAndProcessed.Player',function(e, data){
+       self.data.player = data;
+      // set the single player title
+      self.setSinglePlayerTitle();
+      self.loadGames();
+      // TODO - get the player's positions
+        // load all positions
+        // load all positionPlayers (with this players id)
+    });
   };
 
-  window.PlayerView = PlayerView;
   /**
-   * ----------- Global Utilities ----------
+   * Set the single player view title
+   * @param {jqueryObject} playerObj json object containing the player data
    */
+  PlayerView.prototype.setSinglePlayerTitle = function(playerObj) {
+    var playerObj =  this.data.player.jsonById[this.params.playerid];
+    this.setTitle(playerObj.firstName + ' ' + playerObj.lastName + ' #' + playerObj.number);
+  };
+
+  /**
+   * Load all the game details and game players and populate the table
+   * @return {[type]} [description]
+   */
+  PlayerView.prototype.loadGames = function() {
+    this.gameParser = new window.GameParser();
+    var self = this;
+
+    $(document).on('dataLoadedAndProcessed.Game',function(e, data){
+      self.data.games = data;
+      self.gamePlayerParser = new window.GamePlayersParser({
+        params: {playerId: self.params.playerid}
+      });
+      self.gamePlayerParser.load();
+
+      $(document).on('dataLoadedAndProcessed.GamePlayer', function(e, data){
+        // for each game go through and add isAttending Flag to it
+        $.each(data.jsonByGameId, function(key, value){
+        var isAttending = value[0].isAttending;
+        self.data.games.jsonById[key].isAttending = isAttending;
+      });
+        // show the game list
+       self.showGameList(self.data);
+      });
+    });
+  };
+  window.PlayerView = PlayerView;
+  
+
+  /*****************************************
+   * ----------- Global Utilities ----------
+   ******************************************/
   var justTime = function(dateObj) {
     return moment(dateObj).format(' h:mm A');
   };
@@ -454,11 +526,7 @@
   };
 
   Handlebars.registerHelper("formatDate", function(date) {
-    formatDate(date);
-  });
-
-  Handlebars.registerHelper("isAttendingGame", function(){
-    console.log(this);
+    return formatDate(date);
   });
 
   Handlebars.registerHelper("setAttendingClass", function(isAttending) {

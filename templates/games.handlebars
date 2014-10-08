@@ -13,8 +13,8 @@
       {{/if}}
     </tr>
   </thead>
-  {{#each this}}
-    <tr class="js-game-player-row {{#if result}} game-played{{/if}}">
+  {{#each games.jsonById}}
+    <tr class="js-game-player-row {{setAttendingClass isAttending}} {{#if result}} game-played{{/if}}">
       <td>{{week}}</td>
       <td>
         {{formatDate dateTime}}
@@ -26,8 +26,13 @@
         {{opponent}}
       </td>
       <td>{{result}}</td>
-      <td class="td-actions">
-        <a href="./game.html#gameid={{id}}" class="btn btn-primary js-show-game-btn" data-game-id={{id}}>View</a>
+      <td>
+      {{#if ../isEditView}}
+        <button class="btn btn-success js-player-yes-btn" data-game-id="{{../id}}" data-player-id="{{../../playerId}}">Yes</button>
+        <button class="btn btn-danger js-player-no-btn" data-game-id="{{../id}}" data-player-id="{{../../playerId}}">No</button>
+      {{else}}
+          <a href="./player.html#playerid={{id}}" class="btn btn-primary js-update-player-btn" data-player-id={{id}}>{{../isGameView}}View</a>
+      {{/if}}
       </td>
     </tr>
   {{/each}}

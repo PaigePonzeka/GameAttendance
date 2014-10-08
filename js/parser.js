@@ -72,6 +72,7 @@
         if (key === 'ascending') {
           query.ascending(value);
         } else {
+          console.log(key);
           query.equalTo(key, value);
         }
       });
@@ -109,8 +110,15 @@
  * PlayerParser Constructor
  * @param {[type]} options [description]
  */
-  var PlayerParser = function() {
+  var PlayerParser = function(options) {
+    this.defaults = {
+      params: {
+        ascending: 'lastName'
+      }
+    };
     window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
+    console.log(options);
     this.name = 'Player';
     this.init();
     this.load();
@@ -125,11 +133,6 @@
       number: result.get('number'),
       positions: result.get('positions')
     };
-  };
-
-  PlayerParser.prototype.setQueryParameters = function(query){
-    query.ascending('lastName');
-    return query;
   };
 
   window.PlayerParser = PlayerParser;
