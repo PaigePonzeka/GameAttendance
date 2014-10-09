@@ -1,0 +1,17 @@
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Position</th>
+      <th>Is Position?</th>
+    </tr>
+  </thead>
+  {{#each positions.jsonById}}
+    <tr class="js-player-position-row {{setPlaysPositionClass isPosition}}">
+      <td>{{name}}</td>
+      <td>
+        <button class="btn btn-success js-position-yes-btn" data-player-id="{{../playerId}}" data-position-id="{{id}}">Yes</button>
+        <button class="btn btn-danger js-position-no-btn" data-player-id="{{../playerId}}" data-position-id="{{id}}">No</button>
+      </td>
+    </tr>
+  {{/each}}
+</table>

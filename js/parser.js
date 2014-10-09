@@ -11,10 +11,9 @@
   };
 
 
-  /**
-   * @constructor Parser
-   * Works with parse data objects from the parse library
-   */
+  /********************************
+   * Parser Constructor
+   ********************************/
   var Parser = function(){
     this.localData = {};
     this.localData.jsonById = {};
@@ -106,10 +105,10 @@
    };
    window.Parser = Parser;
 
-/**
- * PlayerParser Constructor
- * @param {[type]} options [description]
- */
+
+  /********************************
+   * PlayerParser Constructor
+   ********************************/
   var PlayerParser = function(options) {
     this.defaults = {
       params: {
@@ -137,9 +136,9 @@
 
   window.PlayerParser = PlayerParser;
 
-  /**
+  /********************************
    * GameParser Constructor
-   */
+   ********************************/
   var GameParser = function(options) {
     this.defaults = {
       params : {
@@ -164,26 +163,20 @@
       result: result.get('Result')
     };
   };
-
-
-  /**
-   * {columnName: 'ColumnName', value: 'Value'}
-   * @param {[type]} query [description]
-   */
-
   window.GameParser = GameParser;
 
-  /**
+  /********************************
    * PositionParser Constructor
-   */
-  var PositionParser = function(){
+   ********************************/
+  var PositionParser = function(options){
     window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
     this.name = 'Position';
     this.init();
     this.load();
   };
-
   window.inherits(PositionParser, window.Parser);
+
   PositionParser.prototype.processResult_ = function(result){
     return {
       id: result.get('PosId'),
@@ -192,7 +185,11 @@
       abbrev: result.get('Abbrev')
     };
   };
+  window.PositionParser = PositionParser;
 
+  /********************************
+   * GamePlayersParser Constructor
+   ********************************/
   var GamePlayersParser = function(options){
     window.Parser.call(this);
     this.options = $.extend(true, {}, this.defaults, options);
@@ -279,38 +276,71 @@
       }
     });
   };
-
   window.GamePlayersParser = GamePlayersParser;
 
-  var PlayerPositionsParser = function(){
+  /********************************
+   * PlayerPositionsParser Constructor
+   ********************************/
+  var PlayerPositionParser = function(options){
     window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
     this.name = 'PlayerPosition';
     this.localData.jsonByPlayerId = {};
     this.localData.jsonByPositionId = {};
     this.localData.dataByPlayerId = {};
     this.localData.dataByPositionId = {};
+    this.localData.databyPlayerIdPositionId = {};
     this.init();
     this.load();
   };
-  window.inherits(PlayerPositionsParser, window.Parser);
-  PlayerPositionsParser.prototype.processResult_ = function(result){
+  window.inherits(PlayerPositionParser, window.Parser);
+  PlayerPositionParser.prototype.processResult_ = function(result){
     return {
       playerId: result.get('playerId'),
-      positionId: result.get('positionId')
+      positionId: result.get('positionId'),
+      isPosition: result.get('isPosition')
     };
   };
 
-  PlayerPositionsParser.prototype.processResults = function(results){
+  PlayerPositionParser.prototype.processResults = function(results){
     var self = this;
     $.each(results, function(){
+      // TODO(paige) Fix this to support arrays (currently overrides)
       var obj = self.processResult_(this);
       self.localData.jsonByPlayerId[obj.playerId] = obj;
       self.localData.jsonByPositionId[obj.positionId] = obj;
       self.localData.dataByPlayerId[obj.playerId]= this;
       self.localData.dataByPositionId[obj.positionId] = this;
+      self.localData.databyPlayerIdPositionId[obj.playerId + '-' + obj.positionId] = this;
     });
     self.triggerLoadedEvent();
   };
+
+  PlayerPositionParser.prototype.updateOrCreate = function(data, callback){
+    var playerPosition;
+    if (data.playerId && data.positionId) {
+
+      playerPosition = this.localData.databyPlayerIdPositionId[data.playerId + '-' + data.positionId];
+    }
+
+    if (!playerPosition) {
+      playerPosition = new this.dataObject();
+      playerPosition.set('playerId', data.playerId);
+      playerPosition.set('positionId', data.positionId);
+    } else {
+      playerPosition = playerPosition;
+    }
+
+    playerPosition.set('isPosition', data.isPosition);
+    playerPosition.save(null, {
+      success: function(playerPosition) {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      }
+    });
+  };
+  window.PlayerPositionParser = PlayerPositionParser;
 
  /*var playerParser = new PlayerParser();
   var gameParser = new GameParser();

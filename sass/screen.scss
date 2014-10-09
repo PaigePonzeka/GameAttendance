@@ -56,7 +56,7 @@
 	font-size: 16px;
 }
 
-.table-striped > tbody > tr.game-attending-row td {
+.table-striped > tbody > tr.yes-row td {
 	background: #CEF3CE;
 	//border-color: #666;
 	vertical-align: middle;
@@ -66,7 +66,7 @@
 	}
 }
 
-.table-striped > tbody > tr.game-not-attending-row td {
+.table-striped > tbody > tr.no-row td {
 	background: #FDCFCF;
 
 	.btn-danger {
@@ -120,4 +120,21 @@ footer {
 
 .attendance-btn {
   margin-left: 20px;
+}
+
+// Position List
+.position-list {
+  @include clearfix;
+  li {
+    float: left;
+    margin-right: 10px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    .btn {
+      min-width: 50px;
+    }
+  }
 }

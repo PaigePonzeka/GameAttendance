@@ -176,6 +176,19 @@
   };
 
   /**
+   * Shows the position view
+   * @param  {[type]} data [description]
+   * @return {[type]}      [description]
+   */
+  View.prototype.showPositionList = function(data) {
+    var self = this;
+    T.render('positions', function(generateTemplate){
+      self.positionContainer.html(generateTemplate(data));
+    });
+    this.bindPositionList(self.positionContainer);
+  };
+
+  /**
    * Table interactions for attendance buttons Yes/No
    * All buttons are assumed to have a data-playerid and data-gameid attributer
    * @return {JQueryObject} the table container
@@ -215,12 +228,44 @@
     };
     // change the view to show that data is loading
     var setRowClass = function(isAttending){
-      $button.closest('.js-game-player-row').toggleClass('game-attending-row', isAttending);
-      $button.closest('.js-game-player-row').toggleClass('game-not-attending-row', !isAttending);
-    }
+      $button.closest('.js-game-player-row').toggleClass('yes-row', isAttending);
+      $button.closest('.js-game-player-row').toggleClass('no-row', !isAttending);
+    };
 
     this.gamePlayerParser.updateOrCreate(data, setRowClass(isAttending));
     var $parent = $button.closest('.js-player-list-container');
+  };
+
+  /**
+   * Bind actions on positions table
+   */
+  View.prototype.bindPositionList = function($container){
+    var self = this;
+    $container.on('click','.js-position-yes-btn, .js-position-no-btn', function(){
+      var playerId = $(this).data('player-id'),
+          positionId = $(this).data('position-id'),
+          isPosition = false,
+          $button = $(this);
+      if ($button.hasClass('js-position-yes-btn')) {
+        isPosition = true;
+      }
+
+      var data = {
+        'playerId' : playerId,
+        'positionId': positionId,
+        'isPosition' : isPosition
+      };
+
+      // change the view to show that data is loading
+      var setRowClass = function(isAttending){
+        $button.closest('.js-player-position-row').toggleClass('yes-row', isAttending);
+        $button.closest('.js-player-position-row').toggleClass('no-row', !isAttending);
+      }
+
+      self.playerPositionParser.updateOrCreate(data, setRowClass(isPosition));
+
+      
+    });
   };
 
 
@@ -432,6 +477,7 @@
    ******************************/
   var PlayerView = function(options){
     this.gameContainer = $('.js-game-list');
+    this.positionContainer = $('.js-position-list');
     this.data = {};
     this.data.isEditView = true;
     View.call(this);
@@ -467,6 +513,7 @@
       self.setSinglePlayerTitle();
       self.loadGames();
       // TODO - get the player's positions
+      self.loadPositions();
         // load all positions
         // load all positionPlayers (with this players id)
     });
@@ -483,7 +530,6 @@
 
   /**
    * Load all the game details and game players and populate the table
-   * @return {[type]} [description]
    */
   PlayerView.prototype.loadGames = function() {
     this.gameParser = new window.GameParser();
@@ -507,6 +553,32 @@
       });
     });
   };
+
+  /**
+   * Loads Positions and the player Positions and populates the view
+   */
+  PlayerView.prototype.loadPositions = function() {
+    var self = this;
+    this.positionParser = new window.PositionParser();
+
+    $(document).on('dataLoadedAndProcessed.Position', function(e, data){
+      self.data.positions = data;
+      self.playerPositionParser = new window.PlayerPositionParser({
+        params: {
+          playerId: self.params.playerid
+        }
+      });
+
+      $(document).on('dataLoadedAndProcessed.PlayerPosition', function(e, data){
+        $.each(data.jsonByPositionId, function(key, value){
+          var isPosition = value.isPosition;
+          self.data.positions.jsonById[key].isPosition = isPosition;
+        });
+        self.showPositionList(self.data);
+      });
+    });
+  };
+
   window.PlayerView = PlayerView;
   
 
@@ -533,10 +605,32 @@
     if (isAttending === undefined) {
       return "";
     } else if (isAttending == true) {
-      return "game-attending-row";
+      return "yes-row";
     } else {
-      return "game-not-attending-row ";
+      return "no-row";
     }
+  });
+
+
+  Handlebars.registerHelper("setPlaysPositionClass", function(isAttending) {
+    if (isAttending === undefined) {
+      return "";
+    } else if (isAttending == true) {
+      return "yes-row";
+    } else {
+      return "no-row";
+    }
+  });
+
+  Handlebars.registerHelper("setPlaysPosition", function(isPosition){
+    if (isPosition === undefined) {
+      return "";
+    } else if (isPosition == true) {
+      return "btn-success";
+    } else {
+      return "btn-danger";
+    }
+
   });
 
   })(window, document);
