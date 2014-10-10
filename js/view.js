@@ -268,53 +268,16 @@
     });
   };
 
-
-
-  /*************************************
-   * IndexView constructor
-   * Shows playerlist and shows gamelist
-   **************************************/
-  var IndexView = function(options){
-    this.options = $.extend(true, {}, this.defaults, options);
-    this.playerParser = new window.PlayerParser();
-    this.gameParser = new window.GameParser();
-    this.gameContainer = $('.js-game-list');
-    this.playerContainer = $('.js-player-list');
-    this.init();
-  };
-  window.inherits(IndexView, View);
-
-  /**
-   * intialize
-   */
-  IndexView.prototype.init = function(){
-    var self = this;
-    $(document).on('dataLoadedAndProcessed.Game', function(e, localData){
-      var data = {
-        games: localData
-      };
-      self.showGameList(data);
-    });
-    $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
-      var data = {
-        players: localData
-      };
-      self.showPlayerList(data);
-    });
-  };
-  window.IndexView = IndexView;
-
   /*****************************
    * GameView Constructor
-   * Shows the entire games list (TODO), 
+   * Shows the entire games list when there are no queries, 
    * Shows specific games if queried in the params, 
    * Shows week view iv queried in the params (TODO)
    ******************************/
   var GameView = function(options){
-    this.playerParser = new window.PlayerParser();
-    this.playersLoaded = false;
     View.call(this);
     this.playerContainer = $('.js-player-list');
+    this.gameContainer = $('.js-game-list');
     this.init();
     this.options = $.extend(true, {}, this.defaults, options);
   };
@@ -328,41 +291,71 @@
   };
 
   GameView.prototype.init = function(){
-    var self = this;
-    this.bindPlayersLoaded();
     this.bindAttendanceTableActions(this.playerContainer);
   };
 
   /**
+   * Loads and shows the list of all games
+   */
+  GameView.prototype.loadFullView = function(){
+    var self = this;
+    this.gamesParser = new window.GameParser();
+    $(document).on('dataLoadedAndProcessed.Game', function(e, data){
+      var localData = {
+        games : data
+      };
+      self.showGameList(localData);
+    });
+  };
+
+  GameView.prototype.loadQueriedView = function() {
+    if (this.params.week) {
+      this.loadWeekView();
+      // query for the games this week
+    } else if (this.params.gameid) {
+      this.loadSingleGameView();
+      // query for the games id
+    } else {
+      // unsupported load regular view of all games
+      this.loadFullView();
+    }
+  };
+  /**
    * Load the title and required data for the single game view
+   * Loads players since we show the player list for attending a single/multiple games
    */
   GameView.prototype.loadSingleGameView = function(){
     var self = this;
-    var gameParser = new GameParser({
-      params: { objectId: this.params.gameId, ascending: 'dateTime'},
-    }),
-    self = this;
-
-    // when the single game details are loaded display the title
-    $(document).on('dataLoadedAndProcessed.Game',function(e, data){
-      self.onGameLoaded(data);
-    });
-
-    // query for the gamePlayer details 
-    this.gamePlayerParser = new GamePlayersParser({
-      params: {'gameId': this.params.gameid}
-    });
-    this.gamePlayerParser.load();
-     $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){
-      self.data.gamePlayer = data;
-      // update the player object to show the isAttending status
-      $.each(data.jsonByPlayerId, function(key, value){
-        var isAttending = value[0].isAttending;
-        self.data.players.jsonById[key].isAttending = isAttending;
+    this.playerParser = new window.PlayerParser();
+    this.playersLoaded = false;
+    
+    $(document).on('dataLoadedAndProcessed.Player', function(e, data){
+      self.data.players = data;
+      self.gameParser = new GameParser({
+        params: { objectId: self.params.gameid, ascending: 'dateTime'},
+      });
+          // when the single game details are loaded display the title
+      $(document).on('dataLoadedAndProcessed.Game',function(e, data){
+        self.onGameLoaded(data);
       });
 
-      self.showPlayerList(self.data);
+      // query for the gamePlayer details 
+      this.gamePlayerParser = new GamePlayersParser({
+        params: {'gameId': self.params.gameid}
+      });
+      this.gamePlayerParser.load();
+       $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){
+        self.data.gamePlayer = data;
+        // update the player object to show the isAttending status
+        $.each(data.jsonByPlayerId, function(key, value){
+          var isAttending = value[0].isAttending;
+          self.data.players.jsonById[key].isAttending = isAttending;
+        });
+
+        self.showPlayerList(self.data);
+      });
     });
+
   };
 
   /**
@@ -375,24 +368,6 @@
     this.data.gameId = this.params.gameid;
     if (game) {
       this.setTitle(formatDate(game.dateTime) + ' ' + game.field + ' ' + game.opponent);
-    }
-  };
-
-  /**
-   * What to do when player data is loaded
-   * @param  {object} data player data
-   */
-  GameView.prototype.onPlayerLoaded = function(data) {
-    this.data.players = data;
-    if (this.params.week) {
-      this.loadWeekView();
-      // query for the games this week
-    } else if (this.params.gameid) {
-      this.loadSingleGameView();
-      // query for the games id
-    } else {
-      // unsupported load regular view of all games
-      this.loadFullView();
     }
   };
 
@@ -416,16 +391,6 @@
         gameIds.push(key);
       });
       self.loadWeekGamePlayers(gameIds);
-    });
-  };
-
-  /**
-   * Loads all the players on the roster 
-   */
-  GameView.prototype.bindPlayersLoaded = function(){
-    var self = this;
-    $(document).on('dataLoadedAndProcessed.Player', function(e, data){
-      self.onPlayerLoaded(data);
     });
   };
 
@@ -478,13 +443,26 @@
   var PlayerView = function(options){
     this.gameContainer = $('.js-game-list');
     this.positionContainer = $('.js-position-list');
+    this.playerContainer = $('.js-player-list');
     this.data = {};
     this.data.isEditView = true;
     View.call(this);
-    //this.init();
-
   };
   window.inherits(PlayerView, View);
+
+  /**
+   * Show the list of all players
+   */
+  PlayerView.prototype.loadFullView = function() {
+    var self = this;
+    var playerParser = new PlayerParser();
+    $(document).on('dataLoadedAndProcessed.Player', function(e, data){
+      var localData = {
+        players: data
+      };
+      self.showPlayerList(localData);
+    });
+  };
 
 
   /**
@@ -494,7 +472,9 @@
     // query for this player id
     if (this.params.playerid) {
       this.loadSinglePlayerView();
-    } 
+    } else { // unsupported query just show full view
+      this.loadFullView();
+    }
   };
 
   /**

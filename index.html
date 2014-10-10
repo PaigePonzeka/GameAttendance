@@ -9,35 +9,20 @@
       <div class="index-container js-index-container">
         <h1>Attendance Tracker <span class="beta">Beta</span></h1>
       </div>
-      <div class="panel panel-default js-player-list-wrapper">
-          <div class="panel-heading">Select a Game</div>
-          <div class="panel-body js-game-list">
-          <div class="spinner">
-              <div class="double-bounce1"></div>
-              <div class="double-bounce2"></div>
-            </div>
-          </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">Welcome!</div>
+        <div class="panel-body">
+          Welcome to the beta edition of the Attendance Tracker. This app can be used to manage your game attendance for a manager's set schedule and also to update your own position for the manager's use when setting up the lineup.
+          <br />
+          Click a button below to get started:
         </div>
-        <div class="panel panel-default js-player-list-wrapper">
-          <div class="panel-heading">Select a Player</div>
-          <div class="panel-body js-player-list">
-          <div class="spinner">
-              <div class="double-bounce1"></div>
-              <div class="double-bounce2"></div>
-            </div>
-          </div>
+        <div class="panel-body">
+          <ul class="button-list">
+            <li><a href="./game.html" class="btn btn-success">View the Schedule</a></li>
+            <li><a href="./player.html" class="btn btn-default">View the Roster</a></li>
+          </ul>
         </div>
+      </div>
     </div>
   </body>
-  <script src="./js/jquery-1.11.1.min.js"></script>
-  <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
-  <script src="./js/handlebars-v2.0.0.js"></script>
-  <script src="./js/moment.min.js"></script>
-  <script src="./js/parser.js"></script>
-  <script src="./js/view.js"></script>
-  <script>
-    $(document).ready(function(){
-      var indexView = new IndexView();
-    });
-  </script>
 </html>
