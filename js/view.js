@@ -340,10 +340,10 @@
       });
 
       // query for the gamePlayer details 
-      this.gamePlayerParser = new GamePlayersParser({
+      self.gamePlayerParser = new GamePlayersParser({
         params: {'gameId': self.params.gameid}
       });
-      this.gamePlayerParser.load();
+      self.gamePlayerParser.load();
        $(document).on('dataLoadedAndProcessed.GamePlayer',function(e, data){
         self.data.gamePlayer = data;
         // update the player object to show the isAttending status
