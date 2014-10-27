@@ -67,11 +67,15 @@
    */
   Parser.prototype.setQueryParameters = function(query){
     if (this.options.params) {
+
+      /*if (this.options.join) {
+        this.createAndQuery();
+      }*/
+      // single query
       $.each(this.options.params, function(key, value){
         if (key === 'ascending') {
           query.ascending(value);
         } else {
-          console.log(key);
           query.equalTo(key, value);
         }
       });
@@ -79,6 +83,21 @@
     query.limit(1000);
     return query;
   };
+
+  /*Parser.prototype.createAndQuery = function(){
+    console.log('Creating And quesry');
+    var queryItems = [];
+    $.each(this.options.params, function(key, value){
+      queryItems.push({'key': key, 'value': value})
+    });
+    console.log(queryItems);
+    var query1 = new Parse.Query(this.dataObject);
+    query1.equalTo(queryItems[0].key, queryItems[0].value);
+    var query2 = new Parse.Query(this.dataObject);
+    query2.equalTo(queryItems[1].key, queryItems[1].value);
+    var mainQuery = Parse.Query.and(query1, query2);
+    return mainQuery;
+  };8?
 
   /**
    * Processes data to a friendly json format
@@ -103,6 +122,16 @@
    Parser.prototype.processResult_ =function(result){
     // intentionally empty
    };
+
+   Parser.prototype.createMsgObject = function(isValid, msg){
+
+    return {
+      'isValid': isValid,
+      'msg': msg
+    };
+
+   };
+
    window.Parser = Parser;
 
 
@@ -117,7 +146,6 @@
     };
     window.Parser.call(this);
     this.options = $.extend(true, {}, this.defaults, options);
-    console.log(options);
     this.name = 'Player';
     this.init();
     this.load();
@@ -340,8 +368,59 @@
       }
     });
   };
+  
+  var ManagerParser = function(options) {
+    window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
+    this.name = 'Manager';
+    this.init();
+
+  };
+  window.inherits(ManagerParser, window.Parser);
+
+  ManagerParser.prototype.processResult_ = function(result){
+    return {
+      id: result.id,
+      email: result.get('email')
+    };
+  };
+  
+  /**
+    * Make sure the give data has valid input
+    */ 
+  ManagerParser.prototype.validate = function(data){
+    var emailError = "Please enter a valid email address",
+      passwordError = "Please enter a valid password";
+
+    // TODO validate email
+    if (data.email !== '') {
+      var isValidEmail = validateEmail(data.email);
+      if (!isValidEmail) {
+        return this.createMsgObject(false, emailError);
+      }
+    } else {
+      return this.createMsgObject(false, emailError);
+    }
+
+    if (data.password === '') {
+      return this.createMsgObject(false, passwordError);
+    }
+
+    return this.createMsgObject(true);
+  }
+
+  window.ManagerParser = ManagerParser;
   window.PlayerPositionParser = PlayerPositionParser;
 
+  /**
+   * Utilities
+   */
+   var validateEmail = function validateEmail(email) { 
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+} 
+  //var managerParser = new ManagerParser();
+  //managerParser.save({email:'paigepon@gmail.com', password: '12345'})
  /*var playerParser = new PlayerParser();
   var gameParser = new GameParser();
   var positionParser = new PositionParser();

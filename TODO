@@ -1,0 +1,8 @@
+-- accounts with managers
+-- Manager
+  -- email (login)
+  -- password
+  -- created_by
+  -- secure and encrypted passwords
+-- signup page
+-- login page

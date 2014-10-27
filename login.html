@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>Attendance Tracker</title>
+    <link href="./stylesheets/screen.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div class="container">
+      <div class="index-container js-index-container">
+        <h1>Attendance Tracker <span class="beta">Beta</span></h1>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">Log in!</div>
+        <div class="panel-body">
+         <div class="alert alert-danger js-message-block" style="display: none;">
+            <strong class="js-message-block-title">Error!</strong>
+            <span class="js-message-block-content">Better check yourself, you're not looking too good.</span>
+          </div>
+          If you already have an account on Attendance Tracker Please Login:
+          <form id="login-form">
+            <label>
+              Email: <br />
+              <input type="text" placeholder="Email" name="email" value="test@gmail.com"/>
+            </label>
+            <br />
+            <label> 
+              Password: <br/>
+              <input type="text" placeholder="Password" name="password" value="sdfdsfsdf" />
+            </label>
+            <br />
+            <input type="submit" class="btn btn-primary" value="Login!" />
+          </form>
+        </div>
+        <div class="panel-body">
+          <ul class="button-list">
+            <li><a href="./signup.html" class="btn btn-default">Sign up!</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <script src="./js/jquery-1.11.1.min.js"></script>
+  <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+  <script src="./js/handlebars-v2.0.0.js"></script>
+  <script src="./js/moment.min.js"></script>
+  <script src="./js/parser.js"></script>
+  <script src="./js/view.js"></script>
+  <script>
+    $(document).ready(function(){
+      var loginView = new window.LoginView();
+    });
+  </script>
+  </body>
+</html>

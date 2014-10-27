@@ -263,9 +263,31 @@
       }
 
       self.playerPositionParser.updateOrCreate(data, setRowClass(isPosition));
-
-      
     });
+  };
+
+  View.prototype.showMessage = function(content, type){
+    var $messageBlock = $('.js-message-block');
+    $messageBlock.removeClass('alert-danger alert-success');
+    $messageBlock.find('.js-message-block-title').html("");
+    if (type === 'error') {
+      $messageBlock.addClass('alert-danger');
+      $messageBlock.find('.js-message-block-title').html("Error!");
+    } else if (type === 'success') {
+      $messageBlock.addClass('alert-success');
+      $messageBlock.find('.js-message-block-title').html("Success!");
+    }
+    $messageBlock.find('.js-message-block-content').html(content);
+    $messageBlock.show();
+  };
+
+
+  /**
+   * Hides error message div
+   */
+  View.prototype.hideMessage = function(){
+    var $messageBlock = $('.js-message-block');
+    $messageBlock.hide();
   };
 
   /*****************************
@@ -560,7 +582,83 @@
   };
 
   window.PlayerView = PlayerView;
+
+  var SignupView = function(){
+    this.managerParser = new window.ManagerParser();
+    this.bindActions();
+  };
+  window.inherits(SignupView, View);
+
+  SignupView.prototype.bindActions = function(){
+    var self = this;
+    $( "#signup-form" ).submit(function( event ) {
+      event.preventDefault();
+      var formArray = $(this).serializeArray();
+      var formJson = {};
+      formArray.forEach(function(input){
+        formJson[input.name] = input.value;
+      });
+
+      // validate 
+      var valid = self.managerParser.validate(formJson);
+      if (valid.isValid) {
+        self.hideMessage();
+        var onSaveSuccess = function(){
+          self.showMessage("Account Created!", 'success');
+        };
+        self.managerParser.save(formJson);
+
+        $(document).on('dataSaved.Manager', function(){
+          onSaveSuccess();
+          // redirect user to the main page logged in 
+        });
+        
+      } else {
+        self.showMessage(valid.msg, 'error');
+      }
+      
+    });
+  };
   
+  window.SignupView = SignupView;
+
+  var LoginView = function(){
+    this.bindActions();
+    this.managerParser = new ManagerParser();
+  };
+  window.inherits(LoginView, View);
+
+  LoginView.prototype.bindActions = function(){
+    var self = this;
+    $('#login-form').submit(function(EVENT){
+      self.hideMessage();
+      event.preventDefault();
+      var formArray = $(this).serializeArray();
+      var formJson = {};
+      formArray.forEach(function(input){
+        formJson[input.name] = input.value;
+      });
+
+      self.manager = new ManagerParser({
+        params : {
+          email : formJson.email,
+          password : formJson.password
+        }
+      }); 
+      self.manager.load();
+      $(document).bind('dataLoadedAndProcessed.Manager', function(e, data){
+        if (Object.keys(data.jsonById).length === 0) {
+          self.showMessage("Login Failed!", "error");
+        } else {
+          console.log("Valid User Create Session");
+        }
+        // create a manager session and login the manager
+
+        $(document).unbind('dataLoadedAndProcessed.Manager');
+      });
+    });
+  };
+  window.LoginView = LoginView;
 
   /*****************************************
    * ----------- Global Utilities ----------
