@@ -6,7 +6,6 @@
   -- Check to make sure email doesn't already exist
   -- First name, last name (setting that as username for the view) 
   -- Make required fields and validation
-  -- Logout
 -- Team Screen
   -- Create and Edit a team 
     -- Create and Edit Screen
