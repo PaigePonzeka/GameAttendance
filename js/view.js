@@ -57,6 +57,9 @@
   var View = function(options) {
     this.options = $.extend(true, {}, this.defaults, options);
     this.params = this.parseUrl();
+    this.cookieGenerator = new CookieGenerator();
+    this.checkForLoggedInUser();
+    this.setUsername();
     this.load();
   };
   window.View = View;
@@ -289,6 +292,64 @@
     var $messageBlock = $('.js-message-block');
     $messageBlock.hide();
   };
+
+  /**
+   * Updates all divs with 'js-username' class with the username (currently user email)
+   */
+  View.prototype.setUsername=function(){
+    if (this.isLoggedIn()) {
+      $('.js-username').html(' ' + this.currentUserEmail);
+    }
+  }
+
+  /**
+   * Checks to see if user is logged in (if user cookie exists)
+   */
+  View.prototype.checkForLoggedInUser = function(){
+    var cookieJson = this.cookieGenerator.read();
+    if (cookieJson.userId) {
+      this.currentUserId = cookieJson.userId;
+    }
+
+    if (cookieJson.userEmail) {
+      this.currentUserEmail = cookieJson.userEmail;
+    }
+  };
+
+  View.prototype.isLoggedIn = function(){
+    if (this.currentUserEmail && this.currentUserId) {
+      return true;
+    }
+    return false;
+  };
+
+  /*****************************
+   * IndexView Constructor
+   * Checks to see if the user is logged in as a manager and displays appropiate data
+   ******************************/
+  var IndexView = function(options) {
+    View.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
+    this.init();
+  };
+  window.inherits(IndexView, View);
+
+  IndexView.prototype.init = function(){
+    this.checkAndShowManagerView();
+  };
+
+  /**
+   * If a user is logged in show that view
+   * @return {[type]} [description]
+   */
+  IndexView.prototype.checkAndShowManagerView = function(){
+    if (this.isLoggedIn()) {
+      $('.js-manager-view').show();
+    }
+  };
+
+  window.IndexView = IndexView;
+
 
   /*****************************
    * GameView Constructor
@@ -631,6 +692,7 @@
   LoginView.prototype.bindActions = function(){
     var self = this;
     $('#login-form').submit(function(EVENT){
+      $(this).find('.btn').attr('disabled', true);
       self.hideMessage();
       event.preventDefault();
       var formArray = $(this).serializeArray();
@@ -649,8 +711,18 @@
       $(document).bind('dataLoadedAndProcessed.Manager', function(e, data){
         if (Object.keys(data.jsonById).length === 0) {
           self.showMessage("Login Failed!", "error");
+          $(this).find('.btn').removeAttr();
         } else {
-          console.log("Valid User Create Session");
+          // create the user's cookies to remember them throughout the site
+          var cookieGenerator = new CookieGenerator();
+          $.each(data.jsonById, function(key, value){
+            cookieGenerator.create('userId', this.id);
+            cookieGenerator.create('userEmail', this.email);
+          });
+
+          // show success message
+          self.showMessage("Logged in! Redirecting...", "success");
+          // Redirect the user to /home.html
         }
         // create a manager session and login the manager
 
@@ -659,6 +731,65 @@
     });
   };
   window.LoginView = LoginView;
+
+  /** Cookie Uitilities **/
+  var CookieGenerator = function(options){
+    // TODO if they revisit to we want to reinitialize the cookie?
+    this.daysToExpire = 30; // cookie expires in 30 days
+    this.options = $.extend(true, {}, this.defaults, options);
+  };
+
+  /**
+   * Creates a new cookie with the given name value pair and set to expire at the given time
+   * @param  {string} name  name of the cookie
+   * @param  {string} value value of the cookie
+   * @param  {int} days  time for cookie to expire (defaults to 30)
+   */
+  CookieGenerator.prototype.create = function(name,value,days) {
+    if (days) {
+      days = this.daysToExpire;
+    }
+
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime()+(days*24*60*60*1000));
+      var expires = "; expires="+date.toGMTString();
+    }
+    else var expires = "";
+    document.cookie = name+"="+value+expires+"; path=/";
+  };
+
+  /**
+   * Returns a cookiejson file or null if there are no cookies found
+   */
+  CookieGenerator.prototype.read = function(){
+    var nameEQ = name + "=";
+    var cookieItems = document.cookie.split(';');
+    var cookieJson = {};
+
+    if (cookieItems[0] === '') { // there are no cookies
+      return null;
+    }
+
+    // processing the cookie into something the whole app can use easily
+    $.each(cookieItems, function(key,value){
+      var details = value.trim().split('=');
+      if (details) {
+        cookieJson[details[0]] = details[1];
+      }
+    });
+    return cookieJson;
+  };
+
+  /**
+   * Erases the cookie by setting its exp date to the past
+   * @param  {string} name name of set cookie
+   * @return {[type]}      [description]
+   */
+  CookieGenerator.prototype.erase = function(name) {
+    this.create(name, "", -1);
+  }
+
 
   /*****************************************
    * ----------- Global Utilities ----------

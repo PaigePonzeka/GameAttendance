@@ -1,8 +1,22 @@
 -- accounts with managers
 -- Manager
-  -- email (login)
-  -- password
   -- created_by
   -- secure and encrypted passwords
--- signup page
--- login page
+  -- account settings page (reset password, edit email etc)
+  -- Check to make sure email doesn't already exist
+  -- First name, last name (setting that as username for the view) 
+  -- Make required fields and validation
+-- Team Screen
+  -- Create and Edit a team 
+    -- Create and Edit Screen
+    -- Team with a Name, URL, Description, password (eventually set team colors and personalized page to you :)!
+  -- edit team url (make sure its unique)
+  -- Edit Roster
+    -- Add and Remove Players
+      -- Add connection between players and Teams in the DB
+  -- Edit Schedule 
+    -- Games Connected to a team
+    -- Create Games
+    -- Delete Games
+    -- Edit Games
+-- Depth Chart for settling up a roster
