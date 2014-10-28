@@ -6,10 +6,11 @@
   -- Check to make sure email doesn't already exist
   -- First name, last name (setting that as username for the view) 
   -- Make required fields and validation
+  -- Logout
 -- Team Screen
   -- Create and Edit a team 
     -- Create and Edit Screen
-    -- Team with a Name, URL, Description, password (eventually set team colors and personalized page to you :)!
+    -- Team with a Name, URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
   -- edit team url (make sure its unique)
   -- Edit Roster
     -- Add and Remove Players
@@ -20,3 +21,7 @@
     -- Delete Games
     -- Edit Games
 -- Depth Chart for settling up a roster
+-- Attendance list for all players attending games
+-- Restrict Pages only to managers
+
+-- Reinitialize Cookie so when you come back it resets instead of automatically expiring in 30 days.

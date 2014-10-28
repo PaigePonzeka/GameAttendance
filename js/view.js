@@ -60,6 +60,7 @@
     this.cookieGenerator = new CookieGenerator();
     this.checkForLoggedInUser();
     this.setUsername();
+    this.bindGlobalActions();
     this.load();
   };
   window.View = View;
@@ -126,6 +127,26 @@
     } else {
       this.loadFullView();
     }
+  };
+
+  /**
+   * Binds global view actions
+   */
+  View.prototype.bindGlobalActions = function(){
+    var self = this;
+    var logoutManager = function(event) {
+      event.preventDefault();
+      // delete cookies
+      self.cookieGenerator.erase('userEmail');
+      self.cookieGenerator.erase('userId');
+      self.user = {};
+      // Show messages
+      self.showMessage('You have been Logged out!', 'success');
+      // refresh page
+      window.location ='./login.html';
+      
+    };
+    $('.js-manager-logout').on('click', logoutManager);
   };
 
   /**
@@ -298,7 +319,7 @@
    */
   View.prototype.setUsername=function(){
     if (this.isLoggedIn()) {
-      $('.js-username').html(' ' + this.currentUserEmail);
+      $('.js-username').html(' ' + this.user.email);
     }
   }
 
@@ -307,17 +328,18 @@
    */
   View.prototype.checkForLoggedInUser = function(){
     var cookieJson = this.cookieGenerator.read();
+    this.user = {};
     if (cookieJson.userId) {
-      this.currentUserId = cookieJson.userId;
+      this.user.id = cookieJson.userId;
     }
 
     if (cookieJson.userEmail) {
-      this.currentUserEmail = cookieJson.userEmail;
+      this.user.email = cookieJson.userEmail;
     }
   };
 
   View.prototype.isLoggedIn = function(){
-    if (this.currentUserEmail && this.currentUserId) {
+    if (this.user.id && this.user.email) {
       return true;
     }
     return false;
@@ -344,7 +366,11 @@
    */
   IndexView.prototype.checkAndShowManagerView = function(){
     if (this.isLoggedIn()) {
-      $('.js-manager-view').show();
+      $('.js-logged-in-view').show();
+      $('.js-logged-out-view').hide();
+    } else {
+      $('.js-logged-in-view').hide();
+      $('.js-logged-out-view').show();
     }
   };
 
@@ -722,7 +748,7 @@
 
           // show success message
           self.showMessage("Logged in! Redirecting...", "success");
-          // Redirect the user to /home.html
+          window.location = './index.html';
         }
         // create a manager session and login the manager
 
@@ -746,7 +772,7 @@
    * @param  {int} days  time for cookie to expire (defaults to 30)
    */
   CookieGenerator.prototype.create = function(name,value,days) {
-    if (days) {
+    if (!days) {
       days = this.daysToExpire;
     }
 
