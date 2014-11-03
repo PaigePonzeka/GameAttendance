@@ -30,7 +30,7 @@
   */
   Parser.prototype.save = function(data){
     var newObject = new this.dataObject();
-
+    data = this.beforeSave_(data);
     newObject.save(data, {
       success: function(result) {
         $.event.trigger('dataSaved.' + this.name, [result]);
@@ -39,6 +39,13 @@
         $.event.trigger('dataSaveError.' + this.name , [result]);
       }
     });
+  };
+
+  /**
+   * If later parsers need to customize or preprocess data before they save it
+   */
+  Parser.prototype.beforeSave_ = function(data){
+    // intentionally empty
   };
 
   /**
@@ -80,21 +87,6 @@
     query.limit(1000);
     return query;
   };
-
-  /*Parser.prototype.createAndQuery = function(){
-    console.log('Creating And quesry');
-    var queryItems = [];
-    $.each(this.options.params, function(key, value){
-      queryItems.push({'key': key, 'value': value})
-    });
-    console.log(queryItems);
-    var query1 = new Parse.Query(this.dataObject);
-    query1.equalTo(queryItems[0].key, queryItems[0].value);
-    var query2 = new Parse.Query(this.dataObject);
-    query2.equalTo(queryItems[1].key, queryItems[1].value);
-    var mainQuery = Parse.Query.and(query1, query2);
-    return mainQuery;
-  };8?
 
   /**
    * Processes data to a friendly json format
@@ -438,6 +430,14 @@
     return msgObj;
   };
 
+  ManagerParser.prototype.beforeSave_ = function(data){
+    console.log("Before Save");
+    var passwordHash = CryptoJS.SHA1(data.password);
+    data.password = passwordHash.toString();
+    console.log(data);
+    return data;
+  };
+
   window.ManagerParser = ManagerParser;
   window.PlayerPositionParser = PlayerPositionParser;
 
@@ -448,35 +448,7 @@
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 } 
-  //var managerParser = new ManagerParser();
-  //managerParser.save({email:'paigepon@gmail.com', password: '12345'})
- /*var playerParser = new PlayerParser();
-  var gameParser = new GameParser();
-  var positionParser = new PositionParser();
-  var gamePlayersParser;
-  var positionPlayersParser;
 
-  // TESTING DATA 
-  $(document).on('dataLoadedAndProcessed.Game', function(e, localData){
-    console.log('Game:', localData);
-    gamePlayerParser = new GamePlayersParser();
-    // load gamePlayers
-    $(document).on('dataLoadedAndProcessed.GamePlayer', function(e, localData){
-      console.log("Game Player:", localData);
-    });
-  });
-  $(document).on('dataLoadedAndProcessed.Player', function(e, localData){
-    console.log('Player:', localData);
-          positionPlayersParser = new PlayerPositionsParser();
-    $(document).on('dataLoadedAndProcessed.PlayerPosition', function(e, localData){
-
-      console.log('PositionPlayer', localData);
-    });
-  });
-
-    $(document).on('dataLoadedAndProcessed.Position', function(e, localData){
-    console.log('Position:', localData);
-  });*/
 
 })(window, document);
 

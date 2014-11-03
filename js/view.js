@@ -162,7 +162,6 @@
    */
   View.prototype.loadQueriedView = function() {
     // load only specific data
-    //console.log("load Queried View");
   };
 
   /**
@@ -728,11 +727,11 @@
       formArray.forEach(function(input){
         formJson[input.name] = input.value;
       });
-
+      var passwordHash = CryptoJS.SHA1(formJson.password);
       self.manager = new ManagerParser({
         params : {
           email : formJson.email,
-          password : formJson.password
+          password : passwordHash.toString()
         }
       }); 
       self.manager.load();
