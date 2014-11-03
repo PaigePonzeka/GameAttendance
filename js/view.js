@@ -688,21 +688,23 @@
 
       // validate 
       var valid = self.managerParser.validate(formJson);
-      if (valid.isValid) {
-        self.hideMessage();
-        var onSaveSuccess = function(){
-          self.showMessage("Account Created!", 'success');
-        };
-        self.managerParser.save(formJson);
+      $(document).on('dataValidated.Manager', function(e, data){
+        if (data.isValid) {
+          self.hideMessage();
+          var onSaveSuccess = function(){
+            self.showMessage("Account Created!", 'success');
+          };
+          self.managerParser.save(formJson);
 
-        $(document).on('dataSaved.Manager', function(){
-          onSaveSuccess();
-          // redirect user to the main page logged in 
-        });
-        
-      } else {
-        self.showMessage(valid.msg, 'error');
-      }
+          $(document).on('dataSaved.Manager', function(){
+            onSaveSuccess();
+            // redirect user to the main page logged in 
+          });
+        }
+        else {
+          self.showMessage(data.msg, 'error');
+        }
+      });
       
     });
   };

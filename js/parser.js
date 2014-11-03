@@ -68,9 +68,6 @@
   Parser.prototype.setQueryParameters = function(query){
     if (this.options.params) {
 
-      /*if (this.options.join) {
-        this.createAndQuery();
-      }*/
       // single query
       $.each(this.options.params, function(key, value){
         if (key === 'ascending') {
@@ -384,30 +381,62 @@
       email: result.get('email')
     };
   };
+
+  ManagerParser.prototype.message = {
+    error : {
+      invalidEmail: "Please enter a valid email address",
+      invalidPassword : "Please enter a valid password",
+      duplicateEmail : "There is already and account with this email address. Please Login"
+    }
+  };
   
   /**
     * Make sure the give data has valid input
     */ 
   ManagerParser.prototype.validate = function(data){
-    var emailError = "Please enter a valid email address",
-      passwordError = "Please enter a valid password";
-
-    // TODO validate email
+      var self = this,
+      msgObject = this.createMsgObject(true); // not sure how I feel about defaulting to valid
     if (data.email !== '') {
-      var isValidEmail = validateEmail(data.email);
+       var isValidEmail = validateEmail(data.email);
       if (!isValidEmail) {
-        return this.createMsgObject(false, emailError);
+        msgObject = this.createMsgObject(false, self.message.error.invalidEmail);
+        $.event.trigger('dataValidated.' + this.name , [msgObject]);
+      } else { // make sure the manager doesn't already exists
+        this.managerQuery = new ManagerParser({
+          params : {
+            email : data.email
+          }
+        }); 
+        this.managerQuery.load();
+        var password = data.password;
+        var onManagerQueryLoaded = function(e, data){
+           if ($.isEmptyObject(data.dataById)) {
+             msgObject = self.validatePassword(password);
+           } else {
+            msgObject = self.createMsgObject(false, self.message.error.duplicateEmail);
+           }
+          $.event.trigger('dataValidated.' + self.name , [msgObject]);
+        };
+        $(document).on('dataLoadedAndProcessed.Manager', onManagerQueryLoaded);
       }
     } else {
-      return this.createMsgObject(false, emailError);
+       msgObject = this.createMsgObject(false,  self.message.error.invalidEmail);
+       $.event.trigger('dataValidated.' + this.name , [msgObject]);
     }
+  };
 
-    if (data.password === '') {
-      return this.createMsgObject(false, passwordError);
+  /**
+   * Returns false if the password doesn't match criteria
+   * @return {obj} message object with the validation status and the error message for the user
+   */
+  ManagerParser.prototype.validatePassword = function(password){
+    var msgObj = this.createMsgObject(true); // defaulting to true again... eick
+    if (password === '') {
+       msgObject = this.createMsgObject(false, this.message.error.invalidPassword);
+       return msgObject;
     }
-
-    return this.createMsgObject(true);
-  }
+    return msgObj;
+  };
 
   window.ManagerParser = ManagerParser;
   window.PlayerPositionParser = PlayerPositionParser;

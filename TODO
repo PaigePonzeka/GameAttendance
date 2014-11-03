@@ -1,6 +1,5 @@
 -- accounts with managers
 -- Manager
-  -- created_by
   -- secure and encrypted passwords
   -- account settings page (reset password, edit email etc)
   -- Check to make sure email doesn't already exist
