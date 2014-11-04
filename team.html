@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <title>Attendance Tracker</title>
+    <link href="./stylesheets/screen.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <div class="container">
+      <div class="index-container js-index-container">
+        <h1>Attendance Tracker <span class="beta">Beta</span></h1>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">Team Details<span class="js-user-teamname"></span> <span class="pull-right"><a href="#" style="display: none" class="js-logged-in-view js-manager-logout btn btn-default btn-xs">Logout</a></span></div>
+        <div class="panel-body">
+          <div class="alert alert-danger js-message-block" style="display: none;">
+            <strong class="js-message-block-title">Error!</strong>
+            <span class="js-message-block-content">Better check yourself, you're not looking too good.</span>
+          </div>
+          <form role="form" id="team-form">
+            <div class="form-group">
+              <label for="name">Team Name</label>
+              <input type="text" class="form-control js-team-name" name="name" placeholder="Team Name">
+            </div>
+            <input type="hidden" name="managerId" class="js-manager-id"/>
+            <input type="hidden" name="teamId" class="js-team-id"/>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          Roster
+        </div>
+        <div class="panel-body">
+          <ul class="js-roster-container">
+          </ul>
+
+          <form class="form-inline" role="form" id="player-form">
+            <div class="form-group">
+              <label class="sr-only" for="firstName">First Name</label>
+              <input type="text" class="form-control" name="firstName" placeholder="First Name" value="Paige">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="last_name">Last Name</label>
+              <input type="text" class="form-control" name="lastName" placeholder="Last Name" value="Ponzeka">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="number">Number</label>
+              <input type="number" class="form-control" name="number" placeholder="Number" value="30">
+            </div>
+            <input type="hidden" name="teamId" class="js-team-id"/>
+            <button type="submit" class="btn btn-primary">Add Player</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="http://www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+    <script src="./js/handlebars-v2.0.0.js"></script>
+    <script src="./js/moment.min.js"></script>
+    <script src="./js/parser.js"></script>
+    <script src="./js/view.js"></script>
+    <script>
+      $(document).ready(function(){
+        var TeamView = new window.TeamView();
+      });
+    </script>
+  </body>
+</html>

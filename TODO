@@ -1,15 +1,13 @@
 -- accounts with managers
 -- Manager
-  -- secure and encrypted passwords
   -- account settings page (reset password, edit email etc)
-  -- Check to make sure email doesn't already exist
   -- First name, last name (setting that as username for the view) 
   -- Make required fields and validation
 -- Team Screen
   -- Create and Edit a team 
     -- Create and Edit Screen
     -- Team with a Name, URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
-  -- edit team url (make sure its unique)
+  -- edit team url (make sure its unique) [OPTIONAL]
   -- Edit Roster
     -- Add and Remove Players
       -- Add connection between players and Teams in the DB
@@ -23,3 +21,9 @@
 -- Restrict Pages only to managers
 
 -- Reinitialize Cookie so when you come back it resets instead of automatically expiring in 30 days.
+
+
+Open Chrome with Cookies enabled
+open /Applications/Google\ Chrome.app --args -enable-file-cookies --allow-file-access-from-files
+
+Open Chrome with Local Handlebars enabled

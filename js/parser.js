@@ -1,5 +1,5 @@
 (function(window, document, undefined){
-  Parse.initialize("q6NTBFdYRPR1oLOCDKVPTOEu14oRjFoFZFrh4Zks", "OA99A6vm4sKw0HfTUFtH9AbTC7qfVUto5K1auETq");
+  Parse.initialize("CuITmx93tWMYbIzXR2ct4YOAyLSm3r3dS4a1LTKt", "ZHlAF29MYWxSUd2sIZVS3pNqfYHKIMeMFvVOu8qE");
 
   window.inherits = function(child, parent) {
     /** @constructor */
@@ -27,13 +27,19 @@
 
   /**
   * Saves a new Parse Object
+  * or updates a current parseObject
   */
-  Parser.prototype.save = function(data){
-    var newObject = new this.dataObject();
+  Parser.prototype.save_ = function(data, updateObj){
+    var self = this;
+    if (updateObj) {
+      newObject = updateObj;
+    } else {
+      newObject = new this.dataObject();
+    }
     data = this.beforeSave_(data);
     newObject.save(data, {
       success: function(result) {
-        $.event.trigger('dataSaved.' + this.name, [result]);
+        $.event.trigger('dataSaved.' + this.name, [self.processResult_(result)]);
       },
       error: function(result, error) {
         $.event.trigger('dataSaveError.' + this.name , [result]);
@@ -41,11 +47,20 @@
     });
   };
 
+
+  /**
+  * Saves a new Parse Object
+  */
+  Parser.prototype.save = function(data){
+    this.save_(data, null);
+  };
+
   /**
    * If later parsers need to customize or preprocess data before they save it
    */
   Parser.prototype.beforeSave_ = function(data){
     // intentionally empty
+    return data;
   };
 
   /**
@@ -120,6 +135,17 @@
     };
 
    };
+
+   Parser.prototype.update = function(data){
+    var currentObj = this.localData.dataById[data.teamId];
+    if (currentObj) {
+      this.save_(data, currentObj);
+    } else {
+      this.save_(data, null);
+    }
+    // check to see if the object already exists
+    // otherwise create a new one
+   }
 
    window.Parser = Parser;
 
@@ -357,7 +383,10 @@
       }
     });
   };
-  
+
+  /********************************
+   * ManagerParser Constructor
+   ********************************/
   var ManagerParser = function(options) {
     window.Parser.call(this);
     this.options = $.extend(true, {}, this.defaults, options);
@@ -431,16 +460,33 @@
   };
 
   ManagerParser.prototype.beforeSave_ = function(data){
-    console.log("Before Save");
     var passwordHash = CryptoJS.SHA1(data.password);
     data.password = passwordHash.toString();
-    console.log(data);
     return data;
   };
 
   window.ManagerParser = ManagerParser;
   window.PlayerPositionParser = PlayerPositionParser;
 
+  /********************************
+   * TeamParser Constructor
+   ********************************/
+  var TeamParser = function(options){
+    window.Parser.call(this);
+    this.options = $.extend(true, {}, this.defaults, options);
+    this.name = 'Team';
+    this.init();
+  };
+  window.inherits(TeamParser, window.Parser);
+
+  TeamParser.prototype.processResult_ = function(result){
+    return {
+      id : result.id,
+      managerId: result.get('managerId'),
+      name: result.get('name')
+    };
+  };
+  window.TeamParser = TeamParser;
   /**
    * Utilities
    */

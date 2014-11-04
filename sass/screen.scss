@@ -140,10 +140,14 @@ footer {
 }
 
 
-.button-list li {
-  margin: 5px 0;
+.button-list {
+  text-align: center;
+  
+  li {
+    margin: 5px 0;
 
-  .btn {
-    min-width: 200px;
+    .btn {
+      min-width: 200px;
+   }
   }
 }

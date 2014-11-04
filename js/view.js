@@ -344,6 +344,19 @@
     return false;
   };
 
+  /**
+   * Converts form data to a Json valid for the server
+   * @return {[type]} [description]
+   */
+  View.prototype.formToJson = function(form){
+    var formArray = $(form).serializeArray();
+    var formJson = {};
+    formArray.forEach(function(input){
+      formJson[input.name] = input.value;
+    });
+    return formJson;
+  };
+
   /*****************************
    * IndexView Constructor
    * Checks to see if the user is logged in as a manager and displays appropiate data
@@ -679,19 +692,16 @@
     var self = this;
     $( "#signup-form" ).submit(function( event ) {
       event.preventDefault();
-      var formArray = $(this).serializeArray();
-      var formJson = {};
-      formArray.forEach(function(input){
-        formJson[input.name] = input.value;
-      });
+      var formJson = self.formToJson(this);
 
       // validate 
       var valid = self.managerParser.validate(formJson);
       $(document).on('dataValidated.Manager', function(e, data){
         if (data.isValid) {
           self.hideMessage();
+
           var onSaveSuccess = function(){
-            self.showMessage("Account Created!", 'success');
+            self.showMessage("Account Created! Now you can login!", 'success');
           };
           self.managerParser.save(formJson);
 
@@ -758,6 +768,90 @@
     });
   };
   window.LoginView = LoginView;
+
+  /*****************************
+   * TeamView Constructor
+   * Checks to see if current manager has a team - TODO
+   * if manager has team
+   *    Shows the Roster with edit buttons for players
+   *    Shows current team name and info with option to edit
+   * if the manager does not have a team 
+   *   - Show the create form
+   ******************************/
+  var TeamView = function(){
+    View.call(this);
+    if (this.isLoggedIn()){
+      this.teamParser = new window.TeamParser({ 
+        params: {
+          managerId: this.user.id 
+        }
+      });
+      this.init();
+      this.bindActions();
+      this.playerParser = new window.PlayerParser();
+      this.rosterContainer = $('.js-roster-container');
+    } else {
+      this.showMessage("Please Login!", "error")
+    }
+  };
+  window.inherits(TeamView, View);
+  
+  TeamView.prototype.init = function(){
+    $('.js-manager-id').val(this.user.id);
+    this.loadTeam();
+  };
+
+  TeamView.prototype.loadTeam = function(){
+    var self = this;
+    // load the users team details
+    this.teamParser.load();
+
+    var onTeamLoad = function(e, data){
+      // we just want the first team (Managers only have one team)
+      for(var key in data.jsonById) break;
+      var team = data.jsonById[key];
+      $('.js-team-id').val(team.id);
+      $('.js-team-name').val(team.name);
+      self.loadRoster();
+    };
+
+    $(document).on('dataLoadedAndProcessed.Team', onTeamLoad);
+  };
+
+  TeamView.prototype.loadRoster = function(){
+    console.log('loading roster');
+  };
+
+  TeamView.prototype.bindActions = function(){
+    var self = this;
+    $('#team-form').on('submit', function(event){
+      event.preventDefault();
+      var formJson = self.formToJson(this);
+      self.teamParser.update(formJson);
+      $(document).on('dataSaved.Team', function(){
+        self.showMessage("Team Saved!", 'success')
+      });
+    });
+
+    $('#player-form').on('submit', function(event){
+      event.preventDefault();
+      var formJson = self.formToJson(this);
+      self.playerParser.update(formJson);
+
+      $(document).on('dataSaved.Player', function(e, data){
+        console.log("Player Saved");
+        self.showMessage("Player Saved!", 'success');
+        T.render('player', function(generateTemplate){
+          self.rosterContainer.append(generateTemplate(data));
+        });
+        // append the player to the dom
+        $(document).unbind('dataSaved.Player');
+      });
+    });
+  };
+
+  window.TeamView = TeamView;
+
 
   /** Cookie Uitilities **/
   var CookieGenerator = function(options){
