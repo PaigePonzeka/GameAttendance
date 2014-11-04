@@ -788,8 +788,8 @@
       });
       this.init();
       this.bindActions();
-      this.playerParser = new window.PlayerParser();
-      this.rosterContainer = $('.js-roster-container');
+      this.playerParser = {};
+      this.playerContainer = $('.js-roster-container');
     } else {
       this.showMessage("Please Login!", "error")
     }
@@ -812,14 +812,28 @@
       var team = data.jsonById[key];
       $('.js-team-id').val(team.id);
       $('.js-team-name').val(team.name);
-      self.loadRoster();
+      self.loadRoster(team.id);
     };
 
     $(document).on('dataLoadedAndProcessed.Team', onTeamLoad);
   };
 
-  TeamView.prototype.loadRoster = function(){
-    console.log('loading roster');
+  TeamView.prototype.loadRoster = function(teamId){
+    var self = this;
+    
+    this.playerParser = new window.PlayerParser({params :{
+      'teamId' : teamId
+    }});
+
+    var onPlayerQueryLoaded = function(e, data) {
+      var info = {};
+      info.players = data;
+      info.isRosterList = true;
+      self.showPlayerList(info);
+      $(document).unbind('dataLoadedAndProcessed.Player');
+    };
+
+    $(document).on('dataLoadedAndProcessed.Player', onPlayerQueryLoaded);
   };
 
   TeamView.prototype.bindActions = function(){
@@ -827,9 +841,11 @@
     $('#team-form').on('submit', function(event){
       event.preventDefault();
       var formJson = self.formToJson(this);
-      self.teamParser.update(formJson);
+      self.teamParser.update(formJson); 
+
       $(document).on('dataSaved.Team', function(){
-        self.showMessage("Team Saved!", 'success')
+        self.showMessage("Team Saved!", 'success');
+        $(document).unbind('dataSaved.Team');
       });
     });
 
@@ -839,19 +855,15 @@
       self.playerParser.update(formJson);
 
       $(document).on('dataSaved.Player', function(e, data){
-        console.log("Player Saved");
         self.showMessage("Player Saved!", 'success');
-        T.render('player', function(generateTemplate){
-          self.rosterContainer.append(generateTemplate(data));
+        T.render('players', function(generateTemplate){
+          self.playerContainer.html(generateTemplate(data));
         });
-        // append the player to the dom
         $(document).unbind('dataSaved.Player');
       });
     });
   };
-
   window.TeamView = TeamView;
-
 
   /** Cookie Uitilities **/
   var CookieGenerator = function(options){

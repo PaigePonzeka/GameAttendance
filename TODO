@@ -27,3 +27,6 @@ Open Chrome with Cookies enabled
 open /Applications/Google\ Chrome.app --args -enable-file-cookies --allow-file-access-from-files
 
 Open Chrome with Local Handlebars enabled
+
+TODO - 
+Write custom Ajax function to use with handlebars template loading

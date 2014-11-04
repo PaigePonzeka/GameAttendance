@@ -1,0 +1,16 @@
+<table class="table table-striped table-bordered player-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="td-center">#</th>
+      {{#if isGameView}}
+        <th class="td-center">Attending?</th>
+      {{else}}
+        <th></th>
+      {{/if}}
+    </tr>
+  </thead>
+  {{#each players.jsonById}}
+    {{> player}}
+  {{/each}}
+</table>

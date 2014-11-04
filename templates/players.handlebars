@@ -23,7 +23,10 @@
         <button class="btn btn-success js-player-yes-btn" data-game-id="{{../../gameId}}" data-player-id="{{../id}}">Yes</button>
         <button class="btn btn-danger js-player-no-btn" data-game-id="{{../../gameId}}" data-player-id="{{../id}}">No</button>
       {{else}}
-          <a href="./player.html#playerid={{id}}" target="_blank" class="btn btn-primary js-update-player-btn" data-player-id={{id}}>{{../isGameView}}Update</a>
+          <a href="./player.html#playerid={{id}}" target="_blank" class="btn btn-primary js-update-player-btn" data-player-id={{id}}>{{../isGameView}}<i class="glyphicon glyphicon-pencil" title="Edit this Player"></i></a>
+          {{#if ../../isRosterList}}
+            <a href="#" class="btn btn-danger" title="Remove this Player from Team Roster"><i class="glyphicon glyphicon-remove"></i></a>
+          {{/if}}
       {{/if}}
       </td>
     </tr>
