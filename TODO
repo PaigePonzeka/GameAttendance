@@ -9,8 +9,7 @@
     -- Team with URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
   -- edit team url (make sure its unique) [OPTIONAL]
   -- Edit Roster
-    -- Add and Remove Players
-      -- Add connection between players and Teams in the DB
+    -- Edit Players name
   -- Edit Schedule 
     -- Games Connected to a team
     -- Create Games
@@ -25,8 +24,6 @@
 
 Open Chrome with Cookies enabled
 open /Applications/Google\ Chrome.app --args -enable-file-cookies --allow-file-access-from-files
-
-Open Chrome with Local Handlebars enabled
 
 TODO - 
 Write custom Ajax function to use with handlebars template loading
