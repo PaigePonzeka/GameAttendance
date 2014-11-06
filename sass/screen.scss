@@ -108,6 +108,20 @@ footer {
 .player-table {
   width: 400px;
   margin: 0 auto;
+
+  tr td {
+    position: relative;
+  }
+
+  .is-delete-pending {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #666;
+    opacity: 0.6;
+  }
 }
 
 .game-played {
@@ -149,5 +163,12 @@ footer {
     .btn {
       min-width: 200px;
    }
+  }
+}
+
+
+.team-view {
+  #player-form {
+    text-align: center;
   }
 }

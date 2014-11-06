@@ -8241,13 +8241,27 @@ footer {
   width: 400px;
   margin: 0 auto;
 }
+/* line 112, ../sass/screen.scss */
+.player-table tr td {
+  position: relative;
+}
+/* line 116, ../sass/screen.scss */
+.player-table .is-delete-pending {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #666;
+  opacity: 0.6;
+}
 
-/* line 113, ../sass/screen.scss */
+/* line 127, ../sass/screen.scss */
 .game-played {
   opacity: 0.4;
 }
 
-/* line 121, ../sass/screen.scss */
+/* line 135, ../sass/screen.scss */
 .attendance-btn {
   margin-left: 20px;
 }
@@ -8261,29 +8275,34 @@ footer {
 .position-list:after {
   clear: both;
 }
-/* line 128, ../sass/screen.scss */
+/* line 142, ../sass/screen.scss */
 .position-list li {
   float: left;
   margin-right: 10px;
 }
-/* line 132, ../sass/screen.scss */
+/* line 146, ../sass/screen.scss */
 .position-list li:last-child {
   margin-right: 0;
 }
-/* line 136, ../sass/screen.scss */
+/* line 150, ../sass/screen.scss */
 .position-list li .btn {
   min-width: 50px;
 }
 
-/* line 143, ../sass/screen.scss */
+/* line 157, ../sass/screen.scss */
 .button-list {
   text-align: center;
 }
-/* line 146, ../sass/screen.scss */
+/* line 160, ../sass/screen.scss */
 .button-list li {
   margin: 5px 0;
 }
-/* line 149, ../sass/screen.scss */
+/* line 163, ../sass/screen.scss */
 .button-list li .btn {
   min-width: 200px;
+}
+
+/* line 171, ../sass/screen.scss */
+.team-view #player-form {
+  text-align: center;
 }

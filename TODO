@@ -6,7 +6,7 @@
 -- Team Screen
   -- Create and Edit a team 
     -- Create and Edit Screen
-    -- Team with a Name, URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
+    -- Team with URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
   -- edit team url (make sure its unique) [OPTIONAL]
   -- Edit Roster
     -- Add and Remove Players

@@ -781,6 +781,8 @@
   var TeamView = function(){
     View.call(this);
     if (this.isLoggedIn()){
+      this.playerParser = {};
+      this.playerContainer = $('.js-roster-container');
       this.teamParser = new window.TeamParser({ 
         params: {
           managerId: this.user.id 
@@ -788,8 +790,7 @@
       });
       this.init();
       this.bindActions();
-      this.playerParser = {};
-      this.playerContainer = $('.js-roster-container');
+      
     } else {
       this.showMessage("Please Login!", "error")
     }
@@ -854,13 +855,33 @@
       var formJson = self.formToJson(this);
       self.playerParser.update(formJson);
 
-      $(document).on('dataSaved.Player', function(e, data){
+      $(document).on('dataSaved.Player', function(e, data, json){
         self.showMessage("Player Saved!", 'success');
-        T.render('players', function(generateTemplate){
-          self.playerContainer.html(generateTemplate(data));
-        });
+        var $playerRow = self.playerContainer.find('.js-game-player-row:last').clone();
+        $playerRow.find('.js-game-player-name').html(json.lastName + ',' + json.firstName);
+        $playerRow.find('.js-game-player-number').html(json.number);
+        $playerRow.attr('data-playerid', json.id);
+        $playerRow.hide().appendTo(self.playerContainer.find('table'));
+        $playerRow.fadeIn();
         $(document).unbind('dataSaved.Player');
       });
+    });
+
+    this.playerContainer.on('click', '.js-delete-player-btn', function(e){
+      e.preventDefault();
+      var $row = $(this).closest('.js-game-player-row'),
+          playerId = $row.data('playerid'),
+          playerObject = self.playerParser.localData.dataById[playerId];
+      $deletingDiv = $('<div>', {'class': 'is-delete-pending'}); // TODO (use this universally?)
+      $row.find('.td-actions').append($deletingDiv);
+      // Delete Player
+      self.playerParser.delete(playerObject);
+      $(document).on('dataDeleted.Player', function(e, details){
+        $deletingDiv.fadeOut();
+        $row.fadeOut();
+        $(document).unbind('dataDelete.Player');
+      });
+
     });
   };
   window.TeamView = TeamView;

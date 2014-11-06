@@ -39,7 +39,8 @@
     data = this.beforeSave_(data);
     newObject.save(data, {
       success: function(result) {
-        $.event.trigger('dataSaved.' + this.name, [self.processResult_(result)]);
+        self.processResults([result]);
+        $.event.trigger('dataSaved.' + this.name, [result,self.processResult_(result)]);
       },
       error: function(result, error) {
         $.event.trigger('dataSaveError.' + this.name , [result]);
@@ -80,6 +81,26 @@
         $.event.trigger('dataLoadFailed.' + self.name, [result]);
       }
     });
+  };
+
+  /**
+   * Deletes a given object 
+   * @param  {ParserObject} obj object to delete
+   */
+  Parser.prototype.delete = function(obj){
+    if (obj) {
+      obj.destroy({
+        success: function(result) {
+          $.event.trigger('dataDeleted.' + self.name, [obj, null, "Didn't Try, No Object To delete."]);
+        },
+        error: function(result, error) {
+          $.event.trigger('dataDeleteFailed.' + self.name, [result, error]);
+        }
+      });
+    } else {
+      $.event.trigger('dataDeleteFailed.' + self.name, [obj, null, "Didn't Try, No Object To delete."]);
+    }
+
   };
 
   /**
