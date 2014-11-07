@@ -5,6 +5,7 @@
 
 @import "compass/reset";
 @import "bootstrap";
+@import "jquery.datetimepicker.scss";
 
 /*
  * Loading Animation
@@ -171,4 +172,9 @@ footer {
   #player-form {
     text-align: center;
   }
+}
+
+// currently only used on the team view page but might be universal of show hide forms
+.panel-heading {
+  @include clearfix;
 }

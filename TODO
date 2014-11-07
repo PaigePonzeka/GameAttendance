@@ -4,12 +4,8 @@
   -- First name, last name (setting that as username for the view) 
   -- Make required fields and validation
 -- Team Screen
-  -- Create and Edit a team 
-    -- Create and Edit Screen
-    -- Team with URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
-  -- edit team url (make sure its unique) [OPTIONAL]
-  -- Edit Roster
-    -- Edit Players name
+  -- Edit Player Screen
+    -- Edit the Players Name
   -- Edit Schedule 
     -- Games Connected to a team
     -- Create Games
@@ -27,3 +23,8 @@ open /Applications/Google\ Chrome.app --args -enable-file-cookies --allow-file-a
 
 TODO - 
 Write custom Ajax function to use with handlebars template loading
+Non-Manager view
+
+New Verions: 
+  Team with URL, Description, password (not required) (eventually set team colors and personalized page to you :)!
+  edit team url (make sure its unique) [OPTIONAL]

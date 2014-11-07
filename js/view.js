@@ -62,6 +62,7 @@
     this.setUsername();
     this.bindGlobalActions();
     this.load();
+    this.checkAndShowManagerView();
   };
   window.View = View;
   /**
@@ -357,6 +358,20 @@
     return formJson;
   };
 
+  /**
+   * If a user is logged in show that view
+   * @return {[type]} [description]
+   */
+  View.prototype.checkAndShowManagerView = function(){
+    if (this.isLoggedIn()) {
+      $('.js-logged-in-view').show();
+      $('.js-logged-out-view').hide();
+    } else {
+      $('.js-logged-in-view').hide();
+      $('.js-logged-out-view').show();
+    }
+  };
+
   /*****************************
    * IndexView Constructor
    * Checks to see if the user is logged in as a manager and displays appropiate data
@@ -370,20 +385,6 @@
 
   IndexView.prototype.init = function(){
     this.checkAndShowManagerView();
-  };
-
-  /**
-   * If a user is logged in show that view
-   * @return {[type]} [description]
-   */
-  IndexView.prototype.checkAndShowManagerView = function(){
-    if (this.isLoggedIn()) {
-      $('.js-logged-in-view').show();
-      $('.js-logged-out-view').hide();
-    } else {
-      $('.js-logged-in-view').hide();
-      $('.js-logged-out-view').show();
-    }
   };
 
   window.IndexView = IndexView;
@@ -728,7 +729,7 @@
 
   LoginView.prototype.bindActions = function(){
     var self = this;
-    $('#login-form').submit(function(EVENT){
+    $('#login-form').submit(function(event){
       $(this).find('.btn').attr('disabled', true);
       self.hideMessage();
       event.preventDefault();
@@ -748,7 +749,7 @@
       $(document).bind('dataLoadedAndProcessed.Manager', function(e, data){
         if (Object.keys(data.jsonById).length === 0) {
           self.showMessage("Login Failed!", "error");
-          $(this).find('.btn').removeAttr();
+          $(this).find('.btn').removeAttr('disabled');
         } else {
           // create the user's cookies to remember them throughout the site
           var cookieGenerator = new CookieGenerator();
@@ -781,8 +782,11 @@
   var TeamView = function(){
     View.call(this);
     if (this.isLoggedIn()){
+      this.dateTimeFormat = 'm/d/Y g:i A';
       this.playerParser = {};
       this.playerContainer = $('.js-roster-container');
+      this.gameContainer = $('.js-schedule-container');
+      this.gameParser = {};
       this.teamParser = new window.TeamParser({ 
         params: {
           managerId: this.user.id 
@@ -800,6 +804,7 @@
   TeamView.prototype.init = function(){
     $('.js-manager-id').val(this.user.id);
     this.loadTeam();
+    this.initDateTimePicker();
   };
 
   TeamView.prototype.loadTeam = function(){
@@ -812,11 +817,27 @@
       for(var key in data.jsonById) break;
       var team = data.jsonById[key];
       $('.js-team-id').val(team.id);
-      $('.js-team-name').val(team.name);
+      self.setTeamName(team.name);
       self.loadRoster(team.id);
+      self.loadSchedule(team.id);
     };
 
     $(document).on('dataLoadedAndProcessed.Team', onTeamLoad);
+  };
+  
+  // TODO(paige) what happens when the manager hasn't set up a team yet?
+  TeamView.prototype.loadSchedule = function(teamId){
+    this.gameParser = new window.GameParser({'teamId': teamId});
+    var self = this;
+    var onScheduleLoad = function(e, data){
+      console.log(data);
+      var info = {
+        games: data
+      };
+      self.showGameList(info);
+    };
+
+     $(document).on('dataLoadedAndProcessed.Game', onScheduleLoad);
   };
 
   TeamView.prototype.loadRoster = function(teamId){
@@ -837,14 +858,56 @@
     $(document).on('dataLoadedAndProcessed.Player', onPlayerQueryLoaded);
   };
 
+  // set the team name
+  TeamView.prototype.setTeamName = function(name){
+    $('.js-team-name').val(name);
+    $('.js-team-name-text').html(name);
+  };
+
+  TeamView.prototype.initDateTimePicker = function(){
+    var self = this;
+    $('.js-datetime-picker').datetimepicker({
+      defaultDate: new Date(),
+      format: self.dateTimeFormat,
+      formatTime: 'g:i A'
+    });
+  };
+
+  /**
+   * Bind all view actions
+   * @return {[type]} [description]
+   */
   TeamView.prototype.bindActions = function(){
     var self = this;
+
+    $('.js-edit-team-btn').on('click', function(){
+      $('.js-edit-team-panel').slideToggle();
+    });
+
+    this.playerContainer.on('click', '.js-delete-player-btn', function(e){
+      e.preventDefault();
+      var $row = $(this).closest('.js-game-player-row'),
+          playerId = $row.data('playerid'),
+          playerObject = self.playerParser.localData.dataById[playerId];
+      $deletingDiv = $('<div>', {'class': 'is-delete-pending'}); // TODO (use this universally?)
+      $row.find('.td-actions').append($deletingDiv);
+      // Delete Player
+      self.playerParser.delete(playerObject);
+      $(document).on('dataDeleted.Player', function(e, details){
+        $deletingDiv.fadeOut();
+        $row.fadeOut();
+        $(document).unbind('dataDelete.Player');
+      });
+    });
+
     $('#team-form').on('submit', function(event){
       event.preventDefault();
       var formJson = self.formToJson(this);
       self.teamParser.update(formJson); 
 
-      $(document).on('dataSaved.Team', function(){
+      $(document).on('dataSaved.Team', function(e, data, json){
+        // change name
+        self.setTeamName(json.name);
         self.showMessage("Team Saved!", 'success');
         $(document).unbind('dataSaved.Team');
       });
@@ -867,21 +930,19 @@
       });
     });
 
-    this.playerContainer.on('click', '.js-delete-player-btn', function(e){
-      e.preventDefault();
-      var $row = $(this).closest('.js-game-player-row'),
-          playerId = $row.data('playerid'),
-          playerObject = self.playerParser.localData.dataById[playerId];
-      $deletingDiv = $('<div>', {'class': 'is-delete-pending'}); // TODO (use this universally?)
-      $row.find('.td-actions').append($deletingDiv);
-      // Delete Player
-      self.playerParser.delete(playerObject);
-      $(document).on('dataDeleted.Player', function(e, details){
-        $deletingDiv.fadeOut();
-        $row.fadeOut();
-        $(document).unbind('dataDelete.Player');
+    $('#game-form').on('submit', function(event){
+      event.preventDefault();
+      var formJson = self.formToJson(this);
+      // convert date to a local date time with moment
+      // The JQuery Plugin uses the wrong date formats -_-
+      var momentDate = new moment(formJson.datetime, 'M/D/YYYY H:mm A');
+      formJson.datetime = momentDate.toDate();
+      self.gameParser.save(formJson);
+      $(document).on('dataSaved.Game', function(){
+        self.showMessage('Game Saved!', 'success');
+        // remember to unbind so it doesn't repead
+        $(document).unbind('dataSaved.Game');
       });
-
     });
   };
   window.TeamView = TeamView;

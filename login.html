@@ -17,17 +17,15 @@
             <span class="js-message-block-content">Better check yourself, you're not looking too good.</span>
           </div>
           If you already have an account on Attendance Tracker Please Login:
-          <form id="login-form">
-            <label>
-              Email: <br />
-              <input type="text" placeholder="Email" name="email" value="test@gmail.com"/>
-            </label>
-            <br />
-            <label> 
-              Password: <br/>
-              <input type="text" placeholder="Password" name="password" value="sdfdsfsdf" />
-            </label>
-            <br />
+          <form role="form" id="login-form">
+            <div class="form-group">
+              <label for="exampleInputEmail1"> Email: </label>
+              <input type="email" class="form-control" placeholder="Email" name="email" value="test@gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="exampleInputPassword1">Password</label>
+              <input type="password" class="form-control" placeholder="Password" name="password" value="sdfdsfsdf">
+            </div>
             <input type="submit" class="btn btn-primary" value="Login!" />
           </form>
         </div>

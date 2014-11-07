@@ -1,7 +1,6 @@
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
-      <th>Week</th>
       <th>Date</th>
       <th>Field</th>
       <th>Opponent</th>
@@ -15,7 +14,6 @@
   </thead>
   {{#each games.jsonById}}
     <tr class="js-game-player-row {{setAttendingClass isAttending}} {{#if result}} game-played{{/if}}">
-      <td>{{week}}</td>
       <td>
         {{formatDate dateTime}}
       </td>

@@ -221,7 +221,7 @@
     return {
       id : result.id,
       field: result.get('field'),
-      dateTime: result.get('dateTime'),
+      dateTime: result.get('datetime'),
       opponent: result.get('opponent'),
       week: result.get('week'),
       result: result.get('Result')
