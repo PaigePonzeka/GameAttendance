@@ -373,7 +373,7 @@
   };
 
   /*****************************
-   * IndexView Constructor
+   * IndexView structor
    * Checks to see if the user is logged in as a manager and displays appropiate data
    ******************************/
   var IndexView = function(options) {
@@ -614,10 +614,22 @@
       // set the single player title
       self.setSinglePlayerTitle();
       self.loadGames();
-      // TODO - get the player's positions
       self.loadPositions();
-        // load all positions
-        // load all positionPlayers (with this players id)
+      self.setPlayerForm(data.jsonById[self.data.playerId]);
+    });
+  };
+
+  /**
+   * Sets the intial values for the player form
+   */
+  PlayerView.prototype.setPlayerForm = function(data) {
+    console.log('setPlayerForm', data);
+    var $playForm = $('#player-form');
+    $.each(data, function(key, value){
+      console.log(key);
+      console.log(value);
+      var $input = $playerForm.find('[name=' +key +']');
+      console.log($input);
     });
   };
 
@@ -830,7 +842,6 @@
     this.gameParser = new window.GameParser({'teamId': teamId});
     var self = this;
     var onScheduleLoad = function(e, data){
-      console.log(data);
       var info = {
         games: data
       };

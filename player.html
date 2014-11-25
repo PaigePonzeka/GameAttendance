@@ -10,20 +10,32 @@
         <h1>Attendance Tracker <span class="beta">Beta</span></h1>
       </div>
         <div class="panel panel-default js-player-list-wrapper">
-          <div class="panel-heading"><h4 class="js-title">Players</div>
-          <div class="js-player-list">
-            <div class="panel-body ">
-              <h4>Positions</h4>
-              <div class="js-position-list">
-                <div class="spinner">
-                  <div class="double-bounce1"></div>
-                  <div class="double-bounce2"></div>
-                </div>
-              </div>
+          <div class="panel-heading"><h4 class="js-title">Players</h4></div>
+          <div class="panel-body js-player-edit-container">
+            <form class="form-inline" role="form" id="player-form" class="js-logged-in-view">
+            <div class="form-group">
+              <label class="sr-only" for="firstName">First Name</label>
+              <input type="text" class="form-control" name="firstName" placeholder="First Name" value="">
             </div>
-            <div class="panel-body">
-              <h4>Games</h4>
-              <div class="js-game-list">
+            <div class="form-group">
+              <label class="sr-only" for="last_name">Last Name</label>
+              <input type="text" class="form-control" name="lastName" placeholder="Last Name" value="">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="number">Number</label>
+              <input type="number" class="form-control" name="number" placeholder="Number" value="">
+            </div>
+            <input type="hidden" name="teamId" class="js-team-id"/>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+          </div>
+        </div>
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            Positions
+          </div>
+          <div class="panel-body">
+            <div class="js-position-list">
                 <div class="spinner">
                   <div class="double-bounce1"></div>
                   <div class="double-bounce2"></div>
@@ -31,6 +43,18 @@
               </div>
             </div>
           </div>
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            <h4>Player Schedule</h4>
+          </div>
+          <div class="panel-body">
+              <div class="js-game-list">
+                <div class="spinner">
+                  <div class="double-bounce1"></div>
+                  <div class="double-bounce2"></div>
+                </div>
+              </div>
+            </div>
         </div>
     </div>
   </body>

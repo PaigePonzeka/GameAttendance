@@ -6,9 +6,8 @@
 -- Team Screen
   -- Edit Player Screen
     -- Edit the Players Name
+    -- Get the Player's team
   -- Edit Schedule 
-    -- Games Connected to a team
-    -- Create Games
     -- Delete Games
     -- Edit Games
 -- Depth Chart for settling up a roster
